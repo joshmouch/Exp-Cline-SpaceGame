@@ -15,14 +15,14 @@ const MAX_ZOOM = 2.0;
 
 // Physics constants
 const GRAVITY_FACTOR = 0.01;
-const MIN_GRAVITY_THRESHOLD = 0.001; // Increased minimum threshold to reduce jitter from tiny forces
+const MIN_GRAVITY_THRESHOLD = 0.0001; // Increased minimum threshold to reduce jitter from tiny forces
 
 // Celestial bodies
 const CELESTIAL_BODIES = {
     EARTH: {
         name: 'earth',
         radius: 150,
-        gravity: 0.3,  // Reduced to make it easier to escape
+        gravity: 0.6,  // Reduced to make it easier to escape
         position: { x: 0, y: 0 },
         color: '#3498db'
     },
