@@ -132,9 +132,9 @@ function drawSun(ctx, gameTime) {
     ctx.fillStyle = surfaceGradient;
     drawBasicBody(ctx, sun);
     
-    // Draw animated sun rays
+    // Draw animated sun rays - MUCH slower rotation
     const numRays = 12;
-    const rayPhaseOffset = gameTime * 0.5;
+    const rayPhaseOffset = gameTime * 0.05; // 10x slower
     
     // Main rays
     ctx.strokeStyle = 'rgba(255, 255, 200, 0.3)';
@@ -142,7 +142,7 @@ function drawSun(ctx, gameTime) {
     
     for (let i = 0; i < numRays; i++) {
         const angle = (i * Math.PI / 6) + rayPhaseOffset;
-        const rayLength = radius * (0.8 + 0.2 * Math.sin(gameTime * 2 + i));
+        const rayLength = radius * (0.8 + 0.2 * Math.sin(gameTime * 0.2 + i)); // 10x slower pulsing
         
         // Main ray
         ctx.beginPath();
@@ -179,15 +179,21 @@ function drawSun(ctx, gameTime) {
         });
     }
     
-    // Draw surface details (solar granulation)
+    // Draw surface details (solar granulation) - fixed positions instead of random
+    // This prevents the "spinning dots" effect
     const granulationAlpha = 0.1;
     const granulationSize = radius * 0.1;
     ctx.fillStyle = `rgba(255, 255, 255, ${granulationAlpha})`;
     
+    // Use fixed positions based on a seed
+    const seed = Math.floor(gameTime * 0.01); // Change very slowly
+    
+    // Create a deterministic pattern that changes very slowly
     for (let i = 0; i < 20; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const distance = Math.random() * radius * 0.8;
-        const size = Math.random() * granulationSize + granulationSize * 0.5;
+        // Use fixed angles based on index
+        const angle = (i / 20) * Math.PI * 2 + (seed * 0.01);
+        const distance = (0.3 + (i % 5) * 0.1) * radius; // Distribute in rings
+        const size = ((i % 3) + 1) * granulationSize * 0.3;
         
         ctx.beginPath();
         ctx.arc(
@@ -280,23 +286,30 @@ function drawPlanet(ctx, planet) {
  * @param {number} radius - Radius of the planet
  */
 function drawMercurySurface(ctx, x, y, radius) {
-    // Add crater-like texture
-    for (let i = 0; i < 8; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const distance = Math.random() * radius * 0.8;
-        const size = Math.random() * radius * 0.2 + radius * 0.1;
+    // Add crater-like texture with fixed positions
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    
+    // Use fixed crater positions
+    const craterPositions = [
+        { angle: 0.2, dist: 0.3, size: 0.15 },
+        { angle: 1.1, dist: 0.5, size: 0.25 },
+        { angle: 2.3, dist: 0.7, size: 0.12 },
+        { angle: 3.6, dist: 0.4, size: 0.18 },
+        { angle: 4.2, dist: 0.6, size: 0.14 },
+        { angle: 5.1, dist: 0.3, size: 0.22 },
+        { angle: 5.8, dist: 0.7, size: 0.16 },
+        { angle: 0.8, dist: 0.8, size: 0.13 }
+    ];
+    
+    craterPositions.forEach(crater => {
+        const craterX = x + Math.cos(crater.angle) * radius * crater.dist;
+        const craterY = y + Math.sin(crater.angle) * radius * crater.dist;
+        const craterSize = radius * crater.size;
         
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
         ctx.beginPath();
-        ctx.arc(
-            x + Math.cos(angle) * distance,
-            y + Math.sin(angle) * distance,
-            size,
-            0,
-            Math.PI * 2
-        );
+        ctx.arc(craterX, craterY, craterSize, 0, Math.PI * 2);
         ctx.fill();
-    }
+    });
 }
 
 /**
@@ -339,17 +352,29 @@ function drawMarsSurface(ctx, x, y, radius) {
     ctx.arc(x, y + radius * 0.8, radius * 0.25, 0, Math.PI * 2);
     ctx.fill();
     
-    // Add surface features suggesting canyons
+    // Add surface features suggesting canyons with fixed positions
     ctx.strokeStyle = 'rgba(139, 69, 19, 0.3)';
     ctx.lineWidth = 2;
-    for (let i = 0; i < 5; i++) {
-        const startAngle = Math.random() * Math.PI * 2;
-        const arcLength = Math.random() * Math.PI * 0.5;
-        
+    
+    // Fixed canyon positions
+    const canyons = [
+        { startAngle: 0.3, arcLength: 0.8, distFactor: 0.7 },
+        { startAngle: 1.5, arcLength: 0.6, distFactor: 0.6 },
+        { startAngle: 2.8, arcLength: 0.4, distFactor: 0.8 },
+        { startAngle: 4.2, arcLength: 0.7, distFactor: 0.5 },
+        { startAngle: 5.5, arcLength: 0.5, distFactor: 0.7 }
+    ];
+    
+    canyons.forEach(canyon => {
         ctx.beginPath();
-        ctx.arc(x, y, radius * (0.5 + Math.random() * 0.4), startAngle, startAngle + arcLength);
+        ctx.arc(
+            x, y, 
+            radius * canyon.distFactor, 
+            canyon.startAngle, 
+            canyon.startAngle + canyon.arcLength
+        );
         ctx.stroke();
-    }
+    });
 }
 
 /**

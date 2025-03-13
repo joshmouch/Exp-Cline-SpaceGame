@@ -197,8 +197,8 @@ function update() {
     // Update camera
     updateCamera(gameState.camera, gameState.rocket, gameState.trajectoryPoints, gameState.controls);
     
-    // Update clouds
-    updateClouds(gameState.clouds);
+    // Update clouds with game time for animations
+    updateClouds(gameState.clouds, gameState.gameTime);
     
     // Only recalculate trajectory when rocket state changes
     if (gameState.rocket.accelerating || gameState.rocket.velocity.x !== 0 || gameState.rocket.velocity.y !== 0) {

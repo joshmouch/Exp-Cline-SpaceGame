@@ -5,36 +5,61 @@
  */
 function createClouds(count) {
     const clouds = [];
+    
+    // Create a single cloud type that follows Earth's curvature better
     for (let i = 0; i < count; i++) {
-        // Create flatter cloud shapes
-        const cloudWidth = Math.random() * 35 + 25; // Slightly wider
-        const cloudHeight = Math.random() * 6 + 4; // Much flatter
+        // Create smaller, more compact clouds
+        const cloudSize = Math.random() * 15 + 10; // Smaller overall size
+        const opacity = Math.random() * 0.2 + 0.2; // 0.2-0.4 range
         
-        // All clouds move in the same direction (positive = counterclockwise)
-        // Speed range increased by 10x for faster movement
-        const speed = (Math.random() * 0.001 + 0.0005); // 10x faster than before
+        // Random position around Earth
+        const angle = Math.random() * Math.PI * 2;
         
-        // Add some bumps to make clouds look puffy but flat
-        const bumpCount = Math.floor(Math.random() * 3) + 2; // 2-4 bumps per cloud
-        const bumps = [];
+        // Random rotation of the cloud pattern
+        const rotation = Math.random() * Math.PI;
         
-        for (let j = 0; j < bumpCount; j++) {
-            bumps.push({
-                offsetX: (Math.random() * 0.7 - 0.35) * cloudWidth, // Offset within cloud width
-                offsetY: (Math.random() * 0.4 - 0.2) * cloudHeight, // Smaller vertical offset for flatter appearance
-                size: (Math.random() * 0.3 + 0.2) * cloudHeight // Smaller bumps for flatter appearance
+        // Random speed (all moving in same direction)
+        const speed = Math.random() * 0.0005 + 0.0002;
+        
+        // Create cloud segments (3-5 segments per cloud)
+        const segmentCount = Math.floor(Math.random() * 3) + 3;
+        const segments = [];
+        
+        // Create segments in a more compact, curved arrangement
+        for (let j = 0; j < segmentCount; j++) {
+            // Position segments in an arc to follow Earth's curvature
+            const segmentAngle = (j / (segmentCount - 1) - 0.5) * Math.PI * 0.3; // Limit to a 30-degree arc
+            const distance = cloudSize * 0.6; // Keep segments close together
+            
+            // Calculate segment position along the arc
+            const x = Math.cos(segmentAngle) * distance;
+            const y = Math.sin(segmentAngle) * distance * 0.5; // Flatten vertically
+            
+            // Randomize segment size slightly
+            const size = cloudSize * (0.5 + Math.random() * 0.5);
+            
+            segments.push({
+                x: x,
+                y: y,
+                size: size,
+                opacity: opacity * (0.8 + Math.random() * 0.4)
             });
         }
         
         clouds.push({
-            angle: Math.random() * Math.PI * 2, // Position around Earth
-            width: cloudWidth,
-            height: cloudHeight,
-            opacity: 0.25 + Math.random() * 0.15, // Slightly more solid (0.25-0.4 range)
-            speed: speed, // All positive for same direction
-            bumps: bumps // Add bumps for puffy appearance
+            angle: angle,
+            rotation: rotation,
+            size: cloudSize,
+            opacity: opacity,
+            speed: speed,
+            segments: segments,
+            // Animation properties
+            pulseSpeed: Math.random() * 0.01 + 0.005,
+            pulseAmount: Math.random() * 0.05 + 0.02,
+            pulseOffset: Math.random() * Math.PI * 2
         });
     }
+    
     return clouds;
 }
 
@@ -57,17 +82,22 @@ function createWaterTwinkles(count) {
 }
 
 /**
- * Updates cloud positions
+ * Updates cloud positions and animations
  * @param {Array} clouds - Array of cloud objects
+ * @param {number} gameTime - Current game time for animations
  */
-function updateClouds(clouds) {
+function updateClouds(clouds, gameTime) {
     clouds.forEach(cloud => {
+        // Update position
         cloud.angle += cloud.speed;
         
         // Keep angle within 0-2π range to avoid floating point issues over time
         if (cloud.angle > Math.PI * 2) {
             cloud.angle -= Math.PI * 2;
         }
+        
+        // Add subtle pulsing animation based on game time
+        cloud.currentPulse = Math.sin(gameTime * cloud.pulseSpeed + cloud.pulseOffset) * cloud.pulseAmount;
     });
 }
 
@@ -144,42 +174,58 @@ function drawEarth(ctx, gameTime, waterTwinkles, clouds) {
         ctx.fill();
     });
     
-    // Draw puffier, cartoony clouds that hug Earth's curvature
+    // Draw clouds that follow Earth's curvature
     ctx.globalCompositeOperation = 'lighter';
     clouds.forEach(cloud => {
-        // Position cloud to follow Earth's curvature
-        const cloudDistance = radius + atmosphereWidth * 0.15; // Closer to surface
+        // Position cloud just above Earth's surface
+        const cloudDistance = radius + atmosphereWidth * 0.1; // Very close to surface
         const cloudAngle = cloud.angle;
         
-        // Calculate cloud position
+        // Calculate cloud center position
         const cloudCenterX = x + Math.cos(cloudAngle) * cloudDistance;
         const cloudCenterY = y + Math.sin(cloudAngle) * cloudDistance;
         
-        // Draw cloud shape
-        ctx.save();
-        ctx.translate(cloudCenterX, cloudCenterY);
-        ctx.rotate(cloudAngle + Math.PI/2); // Rotate to follow Earth's curvature
+        // Apply pulsing animation
+        const pulseScale = 1 + cloud.currentPulse;
         
-        // Use a solid color with minimal gradient for a flatter look
-        ctx.fillStyle = `rgba(255, 255, 255, ${cloud.opacity})`;
-        
-        // Draw main cloud body as a flat ellipse
-        ctx.beginPath();
-        ctx.ellipse(0, 0, cloud.width, cloud.height, 0, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Draw bumps to maintain some puffiness while keeping flat
-        cloud.bumps.forEach(bump => {
-            // Use the same solid color for bumps
-            ctx.fillStyle = `rgba(255, 255, 255, ${cloud.opacity * 1.1})`; // Just slightly brighter
+        // Draw each cloud segment to create a cloud that follows the curve
+        cloud.segments.forEach(segment => {
+            // Calculate segment position relative to cloud center
+            // We need to rotate the segment position based on the cloud's angle around Earth
+            const rotatedX = segment.x * Math.cos(cloudAngle + Math.PI/2) - segment.y * Math.sin(cloudAngle + Math.PI/2);
+            const rotatedY = segment.x * Math.sin(cloudAngle + Math.PI/2) + segment.y * Math.cos(cloudAngle + Math.PI/2);
             
-            // Draw bump
+            // Calculate final segment position
+            const segmentX = cloudCenterX + rotatedX;
+            const segmentY = cloudCenterY + rotatedY;
+            
+            // Calculate distance from Earth center for this segment
+            const distFromCenter = Math.sqrt(
+                Math.pow(segmentX - x, 2) + 
+                Math.pow(segmentY - y, 2)
+            );
+            
+            // Adjust segment size based on distance from Earth center
+            // This ensures segments farther from Earth are smaller
+            const sizeAdjust = cloudDistance / distFromCenter;
+            const adjustedSize = segment.size * pulseScale * sizeAdjust;
+            
+            // Create a soft gradient for each segment
+            const segmentGradient = ctx.createRadialGradient(
+                segmentX, segmentY, 0,
+                segmentX, segmentY, adjustedSize
+            );
+            segmentGradient.addColorStop(0, `rgba(255, 255, 255, ${segment.opacity})`);
+            segmentGradient.addColorStop(0.7, `rgba(255, 255, 255, ${segment.opacity * 0.7})`);
+            segmentGradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
+            
+            ctx.fillStyle = segmentGradient;
+            
+            // Draw segment
             ctx.beginPath();
-            ctx.arc(bump.offsetX, bump.offsetY, bump.size, 0, Math.PI * 2);
+            ctx.arc(segmentX, segmentY, adjustedSize, 0, Math.PI * 2);
             ctx.fill();
         });
-        
-        ctx.restore();
     });
     
     // Reset blend mode
