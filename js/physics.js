@@ -71,19 +71,28 @@ function calculateTrajectory(rocket, points) {
     // Use 3x more points as requested
     const extendedPoints = points * 3;
     
-    // Smaller time step for more accurate simulation
-    const timeStep = 0.5;
+    // Larger time step to stretch out the trajectory
+    const baseTimeStep = 2.0; // Increased from 0.5 to 2.0
     
     // Adaptive time step based on velocity
     const speed = Math.sqrt(simRocket.velocity.x * simRocket.velocity.x + 
                            simRocket.velocity.y * simRocket.velocity.y);
-    const adaptiveTimeStep = Math.min(0.5, Math.max(0.1, 5.0 / (speed + 1)));
+    
+    // Adjust time step based on speed - faster rockets need larger steps to stretch trajectory
+    const adaptiveTimeStep = Math.min(5.0, Math.max(1.0, baseTimeStep * (1 + speed / 20)));
     
     // Minimum number of points to calculate
     const minPoints = Math.min(30, extendedPoints);
     
+    // Maximum distance to simulate (increased to stretch trajectory)
+    const maxDistance = EARTH_RADIUS * 50; // Increased from 20x to 50x Earth radius
+    
+    // Skip factor to spread out points (only store every nth point)
+    const skipFactor = 2;
+    let skipCounter = 0;
+    
     // Simulate multiple steps
-    for (let i = 0; i < extendedPoints; i++) {
+    for (let i = 0; i < extendedPoints * skipFactor; i++) {
         // Apply Earth gravity to the simulated rocket
         const dx = 0 - simRocket.x; // Earth is at (0,0)
         const dy = 0 - simRocket.y;
@@ -109,16 +118,22 @@ function calculateTrajectory(rocket, points) {
         simRocket.x += simRocket.velocity.x * adaptiveTimeStep;
         simRocket.y += simRocket.velocity.y * adaptiveTimeStep;
         
-        // Store point with opacity information (for dimming effect)
-        trajectoryPoints.push({ 
-            x: simRocket.x, 
-            y: simRocket.y,
-            opacity: 1 - (i / extendedPoints) // Opacity decreases with distance
-        });
+        // Only store every nth point to spread them out
+        skipCounter++;
+        if (skipCounter >= skipFactor) {
+            skipCounter = 0;
+            
+            // Store point with opacity information (for dimming effect)
+            trajectoryPoints.push({ 
+                x: simRocket.x, 
+                y: simRocket.y,
+                opacity: 1 - (trajectoryPoints.length / extendedPoints) // Opacity decreases with distance
+            });
+        }
         
         // Only break if we've calculated at least the minimum number of points
         // and we've gone too far from Earth
-        if (trajectoryPoints.length >= minPoints && distance > EARTH_RADIUS * 20) {
+        if (trajectoryPoints.length >= minPoints && distance > maxDistance) {
             break;
         }
     }
