@@ -152,7 +152,7 @@ function drawOrbitPath(ctx, orbitPath) {
 function drawOrbitGuide(ctx, rocket) {
     if (!rocket.landed && !rocket.exploded) {
         // Draw a circular guide showing ideal orbital path
-        const idealOrbitRadius = EARTH_RADIUS * 3;
+        const idealOrbitRadius = CELESTIAL_BODIES.EARTH.radius * 3;
         ctx.strokeStyle = 'rgba(100, 200, 255, 0.2)';
         ctx.lineWidth = 2;
         ctx.setLineDash([5, 5]);

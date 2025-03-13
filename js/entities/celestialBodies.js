@@ -6,10 +6,12 @@
  * @param {Array} clouds - Array of cloud objects
  */
 function drawEarth(ctx, gameTime, waterTwinkles, clouds) {
+    const earth = CELESTIAL_BODIES.EARTH;
+    
     // Earth base
-    ctx.fillStyle = '#3b82f6';
+    ctx.fillStyle = earth.color;
     ctx.beginPath();
-    ctx.arc(0, 0, EARTH_RADIUS, 0, Math.PI * 2);
+    ctx.arc(earth.position.x, earth.position.y, earth.radius, 0, Math.PI * 2);
     ctx.fill();
     
     // Earth land masses
@@ -28,10 +30,11 @@ function drawEarth(ctx, gameTime, waterTwinkles, clouds) {
     drawLandmass(ctx, 0.5, -0.2, 0.4, 0.4);
     
     // Water twinkles
+    const earthRadius = earth.radius;
     waterTwinkles.forEach(twinkle => {
         const brightness = 0.5 + 0.5 * Math.sin(gameTime * twinkle.twinkleSpeed + twinkle.twinkleOffset);
-        const x = Math.cos(twinkle.angle) * Math.cos(twinkle.latitude) * EARTH_RADIUS;
-        const y = Math.sin(twinkle.angle) * Math.cos(twinkle.latitude) * EARTH_RADIUS;
+        const x = earth.position.x + Math.cos(twinkle.angle) * Math.cos(twinkle.latitude) * earthRadius;
+        const y = earth.position.y + Math.sin(twinkle.angle) * Math.cos(twinkle.latitude) * earthRadius;
         
         ctx.fillStyle = `rgba(255, 255, 255, ${brightness * 0.3})`;
         ctx.beginPath();
@@ -41,8 +44,8 @@ function drawEarth(ctx, gameTime, waterTwinkles, clouds) {
     
     // Clouds
     clouds.forEach(cloud => {
-        const x = Math.cos(cloud.angle) * EARTH_RADIUS;
-        const y = Math.sin(cloud.angle) * EARTH_RADIUS;
+        const x = earth.position.x + Math.cos(cloud.angle) * earthRadius;
+        const y = earth.position.y + Math.sin(cloud.angle) * earthRadius;
         
         ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
         ctx.beginPath();
@@ -60,10 +63,12 @@ function drawEarth(ctx, gameTime, waterTwinkles, clouds) {
  * @param {number} height - Height of the land mass relative to Earth radius
  */
 function drawLandmass(ctx, centerX, centerY, width, height) {
-    const x = centerX * EARTH_RADIUS;
-    const y = centerY * EARTH_RADIUS;
-    const w = width * EARTH_RADIUS;
-    const h = height * EARTH_RADIUS;
+    const earth = CELESTIAL_BODIES.EARTH;
+    const earthRadius = earth.radius;
+    const x = earth.position.x + centerX * earthRadius;
+    const y = earth.position.y + centerY * earthRadius;
+    const w = width * earthRadius;
+    const h = height * earthRadius;
     
     ctx.beginPath();
     ctx.ellipse(x, y, w, h, 0, 0, Math.PI * 2);
@@ -75,23 +80,25 @@ function drawLandmass(ctx, centerX, centerY, width, height) {
  * @param {CanvasRenderingContext2D} ctx - The canvas context
  */
 function drawMoon(ctx) {
-    const x = MOON_POSITION.x;
-    const y = MOON_POSITION.y;
+    const moon = CELESTIAL_BODIES.MOON;
+    const x = moon.position.x;
+    const y = moon.position.y;
+    const radius = moon.radius;
     
     // Moon base
-    ctx.fillStyle = '#d1d5db';
+    ctx.fillStyle = moon.color;
     ctx.beginPath();
-    ctx.arc(x, y, MOON_RADIUS, 0, Math.PI * 2);
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fill();
     
     // Moon craters
     ctx.fillStyle = '#9ca3af';
     
     // Draw several craters
-    drawCrater(ctx, x - MOON_RADIUS * 0.3, y - MOON_RADIUS * 0.2, MOON_RADIUS * 0.15);
-    drawCrater(ctx, x + MOON_RADIUS * 0.4, y + MOON_RADIUS * 0.3, MOON_RADIUS * 0.2);
-    drawCrater(ctx, x - MOON_RADIUS * 0.1, y + MOON_RADIUS * 0.4, MOON_RADIUS * 0.1);
-    drawCrater(ctx, x + MOON_RADIUS * 0.2, y - MOON_RADIUS * 0.4, MOON_RADIUS * 0.12);
+    drawCrater(ctx, x - radius * 0.3, y - radius * 0.2, radius * 0.15);
+    drawCrater(ctx, x + radius * 0.4, y + radius * 0.3, radius * 0.2);
+    drawCrater(ctx, x - radius * 0.1, y + radius * 0.4, radius * 0.1);
+    drawCrater(ctx, x + radius * 0.2, y - radius * 0.4, radius * 0.12);
 }
 
 /**
@@ -113,22 +120,24 @@ function drawCrater(ctx, x, y, radius) {
  * @param {number} gameTime - Current game time for animations
  */
 function drawSun(ctx, gameTime) {
-    const x = SUN_POSITION.x;
-    const y = SUN_POSITION.y;
+    const sun = CELESTIAL_BODIES.SUN;
+    const x = sun.position.x;
+    const y = sun.position.y;
+    const radius = sun.radius;
     
-    const gradient = ctx.createRadialGradient(x, y, SUN_RADIUS * 0.5, x, y, SUN_RADIUS * 1.5);
+    const gradient = ctx.createRadialGradient(x, y, radius * 0.5, x, y, radius * 1.5);
     gradient.addColorStop(0, 'rgba(255, 255, 0, 1)');
     gradient.addColorStop(0.5, 'rgba(255, 165, 0, 0.8)');
     gradient.addColorStop(1, 'rgba(255, 69, 0, 0)');
     
     ctx.fillStyle = gradient;
     ctx.beginPath();
-    ctx.arc(x, y, SUN_RADIUS * 1.5, 0, Math.PI * 2);
+    ctx.arc(x, y, radius * 1.5, 0, Math.PI * 2);
     ctx.fill();
     
     ctx.fillStyle = '#fff5c0';
     ctx.beginPath();
-    ctx.arc(x, y, SUN_RADIUS, 0, Math.PI * 2);
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fill();
     
     // Draw sun rays
@@ -136,8 +145,8 @@ function drawSun(ctx, gameTime) {
     ctx.lineWidth = 5;
     for (let i = 0; i < 12; i++) {
         const angle = i * Math.PI / 6 + gameTime * 0.05;
-        const innerRadius = SUN_RADIUS * 1.2;
-        const outerRadius = SUN_RADIUS * 2;
+        const innerRadius = radius * 1.2;
+        const outerRadius = radius * 2;
         
         ctx.beginPath();
         ctx.moveTo(
@@ -155,16 +164,14 @@ function drawSun(ctx, gameTime) {
 /**
  * Draws a planet
  * @param {CanvasRenderingContext2D} ctx - The canvas context
- * @param {string} planetName - Name of the planet to draw
- * @param {string} color - Color of the planet
+ * @param {Object} planet - The planet object from CELESTIAL_BODIES
  */
-function drawPlanet(ctx, planetName, color) {
-    const position = PLANET_POSITIONS[planetName];
-    const radius = PLANET_RADII[planetName];
-    const x = position.x;
-    const y = position.y;
+function drawPlanet(ctx, planet) {
+    const x = planet.position.x;
+    const y = planet.position.y;
+    const radius = planet.radius;
     
-    ctx.fillStyle = color;
+    ctx.fillStyle = planet.color;
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fill();
@@ -188,11 +195,11 @@ function drawPlanet(ctx, planetName, color) {
  * @param {CanvasRenderingContext2D} ctx - The canvas context
  */
 function drawPlanets(ctx) {
-    drawPlanet(ctx, 'mercury', '#a9a9a9'); // Mercury
-    drawPlanet(ctx, 'venus', '#e6c073'); // Venus
-    drawPlanet(ctx, 'mars', '#c1440e'); // Mars
-    drawPlanet(ctx, 'jupiter', '#e0ae6f'); // Jupiter
-    drawPlanet(ctx, 'saturn', '#f4d4a9'); // Saturn
+    drawPlanet(ctx, CELESTIAL_BODIES.MERCURY);
+    drawPlanet(ctx, CELESTIAL_BODIES.VENUS);
+    drawPlanet(ctx, CELESTIAL_BODIES.MARS);
+    drawPlanet(ctx, CELESTIAL_BODIES.JUPITER);
+    drawPlanet(ctx, CELESTIAL_BODIES.SATURN);
 }
 
 /**

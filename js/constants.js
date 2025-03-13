@@ -1,41 +1,84 @@
 // Game constants
-const EARTH_RADIUS = 150;
-const MOON_RADIUS = 40;
-const SUN_RADIUS = 200;
-const PLANET_RADII = {
-    mercury: 20,
-    venus: 40,
-    mars: 35,
-    jupiter: 150,
-    saturn: 120
-};
 const ROCKET_HEIGHT = 20;
 const ROCKET_WIDTH = 10;
 const INITIAL_FUEL = 200;
 const FUEL_CONSUMPTION_RATE = 0.1;
-const ACCELERATION_RATE = 0.01;
+const ACCELERATION_RATE = 0.05; // Increased from 0.01 to make movement more noticeable
 const ROTATION_RATE = 0.05;
 const TRAJECTORY_POINTS = 200;
 const STAR_COUNT = 200;
-
-// Gravity constants
-const GRAVITY_FACTOR = 0.01;
-const EARTH_GRAVITY = 0.5;
-const MOON_GRAVITY = 0.5;
-const SUN_GRAVITY = 0.5;
 const SAFE_LANDING_VELOCITY = 1.0;
 
 // Camera constants
 const MIN_ZOOM = 0.02;
 const MAX_ZOOM = 2.0;
 
-// Planet positions
-const MOON_POSITION = { x: 500, y: 500 };
-const SUN_POSITION = { x: -1500, y: -1500 };
-const PLANET_POSITIONS = {
-    mercury: { x: -800, y: -400 },
-    venus: { x: -400, y: -1000 },
-    mars: { x: 800, y: 800 },
-    jupiter: { x: 1500, y: 0 },
-    saturn: { x: 0, y: 1800 }
+// Physics constants
+const GRAVITY_FACTOR = 0.01;
+const MIN_GRAVITY_THRESHOLD = 0.0001; // Minimum gravity force to consider
+
+// Celestial bodies
+const CELESTIAL_BODIES = {
+    EARTH: {
+        name: 'earth',
+        radius: 150,
+        gravity: 0.3,  // Reduced to make it easier to escape
+        position: { x: 0, y: 0 },
+        color: '#3498db'
+    },
+    MOON: {
+        name: 'moon',
+        radius: 40,
+        gravity: 0.2,
+        position: { x: 500, y: 500 },
+        color: '#bdc3c7'
+    },
+    SUN: {
+        name: 'sun',
+        radius: 200,
+        gravity: 0.8,  // Strong but not as strong as Earth at close range
+        position: { x: -1500, y: -1500 },
+        color: '#f39c12'
+    },
+    MERCURY: {
+        name: 'mercury',
+        radius: 20,
+        gravity: 0.15,
+        position: { x: -800, y: -400 },
+        color: '#95a5a6'
+    },
+    VENUS: {
+        name: 'venus',
+        radius: 40,
+        gravity: 0.3,
+        position: { x: -400, y: -1000 },
+        color: '#e67e22'
+    },
+    MARS: {
+        name: 'mars',
+        radius: 35,
+        gravity: 0.25,
+        position: { x: 800, y: 800 },
+        color: '#e74c3c'
+    },
+    JUPITER: {
+        name: 'jupiter',
+        radius: 150,
+        gravity: 0.7,
+        position: { x: 1500, y: 0 },
+        color: '#f1c40f'
+    },
+    SATURN: {
+        name: 'saturn',
+        radius: 120,
+        gravity: 0.6,
+        position: { x: 0, y: 1800 },
+        color: '#d35400'
+    }
 };
+
+// Create an array of all celestial bodies for easy iteration
+const ALL_CELESTIAL_BODIES = Object.values(CELESTIAL_BODIES);
+
+// Sort celestial bodies by gravity (strongest first) for gravity calculations
+const SORTED_CELESTIAL_BODIES = [...ALL_CELESTIAL_BODIES].sort((a, b) => b.gravity - a.gravity);

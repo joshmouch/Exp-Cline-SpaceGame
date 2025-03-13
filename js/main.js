@@ -26,8 +26,18 @@ function init() {
     
     // Create game objects
     gameState.rocket = createRocket();
+    console.log('Initial rocket state:', {
+        position: { x: gameState.rocket.x, y: gameState.rocket.y },
+        velocity: { x: gameState.rocket.velocity.x, y: gameState.rocket.velocity.y },
+        angle: gameState.rocket.angle,
+        landed: gameState.rocket.landed,
+        fuel: gameState.rocket.fuel
+    });
     gameState.camera = createCamera();
     gameState.controls = createControls();
+    
+    // Make controls globally accessible for the setAcceleration function
+    window.gameControls = gameState.controls;
     
     // Generate visual elements
     gameState.stars = createStars(STAR_COUNT);
@@ -97,24 +107,19 @@ function update() {
         // Apply acceleration if rocket is accelerating
         if (gameState.rocket.accelerating && gameState.rocket.fuel > 0) {
             accelerateRocket(gameState.rocket);
+            console.log(`Rocket accelerating: vel=(${gameState.rocket.velocity.x.toFixed(2)}, ${gameState.rocket.velocity.y.toFixed(2)})`);
         }
         
-        // Apply Earth gravity
-        applyEarthGravity(gameState.rocket);
-        
-        // Apply Moon gravity
-        applyMoonGravity(gameState.rocket);
-        
-        // Apply Sun gravity only when far from Earth
-        const distanceFromEarthSquared = gameState.rocket.x * gameState.rocket.x + gameState.rocket.y * gameState.rocket.y;
-        const earthOrbitThreshold = (EARTH_RADIUS * 10) * (EARTH_RADIUS * 10);
-        
-        if (distanceFromEarthSquared > earthOrbitThreshold) {
-            applySunGravity(gameState.rocket);
-        }
+        // Apply gravity from all celestial bodies
+        applyAllGravity(gameState.rocket);
         
         // Update rocket position
         updateRocketPosition(gameState.rocket);
+        
+        // Debug log
+        if (gameState.gameTime % 1 < 0.02) {
+            console.log(`Rocket pos=(${gameState.rocket.x.toFixed(2)}, ${gameState.rocket.y.toFixed(2)}), vel=(${gameState.rocket.velocity.x.toFixed(2)}, ${gameState.rocket.velocity.y.toFixed(2)})`);
+        }
         
         // Store rocket path for orbit visualization
         if (gameState.gameTime % 0.1 < 0.02) {
@@ -137,45 +142,55 @@ function update() {
             }
         }
         
-        // Check for collision with Earth
-        const landingResult = checkLanding(gameState.rocket, 0, 0, EARTH_RADIUS, 1.0);
-        if (landingResult.success) {
-            // Safe landing
-            gameState.rocket.landed = true;
-            gameState.rocket.velocity = { x: 0, y: 0 };
-            gameState.rocket.x = Math.cos(landingResult.landingAngle + Math.PI / 2) * landingResult.landingDistance;
-            gameState.rocket.y = Math.sin(landingResult.landingAngle + Math.PI / 2) * landingResult.landingDistance;
-            gameState.rocket.angle = landingResult.landingAngle;
-        } else if (landingResult.landingAngle !== undefined) {
-            // Crash landing
-            gameState.rocket.exploded = true;
-            gameState.rocket.velocity = { x: 0, y: 0 };
-        }
-        
-        // Always check for collision with Moon regardless of zoom level
-        const moonLandingResult = checkLanding(
-            gameState.rocket, 
-            MOON_POSITION.x, MOON_POSITION.y, // Moon position
-            MOON_RADIUS, // Moon radius
-            1.0 // Safe landing velocity
-        );
-        
-        if (moonLandingResult.success) {
-            // Safe landing on Moon
-            gameState.rocket.landed = true;
-            gameState.rocket.velocity = { x: 0, y: 0 };
-            gameState.rocket.x = MOON_POSITION.x + Math.cos(moonLandingResult.landingAngle) * moonLandingResult.landingDistance;
-            gameState.rocket.y = MOON_POSITION.y + Math.sin(moonLandingResult.landingAngle) * moonLandingResult.landingDistance;
-            gameState.rocket.angle = moonLandingResult.landingAngle;
-        } else if (moonLandingResult.landingAngle !== undefined) {
-            // Crash landing on Moon
-            gameState.rocket.exploded = true;
-            gameState.rocket.velocity = { x: 0, y: 0 };
+        // Check for landing on any celestial body
+        for (const body of ALL_CELESTIAL_BODIES) {
+            const landingResult = checkLanding(gameState.rocket, body);
+            
+            if (landingResult.landingAngle !== undefined) {
+                if (landingResult.success) {
+                    // Safe landing
+                    gameState.rocket.landed = true;
+                    gameState.rocket.velocity = { x: 0, y: 0 };
+                    gameState.rocket.x = body.position.x + Math.cos(landingResult.landingAngle) * landingResult.landingDistance;
+                    gameState.rocket.y = body.position.y + Math.sin(landingResult.landingAngle) * landingResult.landingDistance;
+                    gameState.rocket.angle = landingResult.landingAngle;
+                    console.log(`Landed on ${body.name}`);
+                } else {
+                    // Crash landing
+                    gameState.rocket.exploded = true;
+                    gameState.rocket.velocity = { x: 0, y: 0 };
+                    console.log(`Crashed on ${body.name}`);
+                }
+                
+                // Break the loop once we've landed or crashed
+                break;
+            }
         }
     } else if (gameState.rocket.landed && !gameState.rocket.exploded) {
         // Launch from surface
+        console.log(`Rocket landed state: landed=${gameState.rocket.landed}, accelerating=${gameState.rocket.accelerating}, fuel=${gameState.rocket.fuel}`);
+        
         if (gameState.rocket.accelerating && gameState.rocket.fuel > 0) {
-            launchRocket(gameState.rocket, EARTH_RADIUS);
+            console.log("Rocket is accelerating and has fuel, attempting to launch");
+            
+            // Find the body we're on by checking distances
+            for (const body of ALL_CELESTIAL_BODIES) {
+                const dx = body.position.x - gameState.rocket.x;
+                const dy = body.position.y - gameState.rocket.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                console.log(`Checking distance to ${body.name}: ${distance} vs ${body.radius * 1.5}`);
+                
+                // If we're close to this body, launch from it
+                if (distance < body.radius * 1.5) {
+                    console.log(`Close enough to ${body.name} to launch`);
+                    const success = launchRocket(gameState.rocket, body);
+                    console.log(`Launched from ${body.name}: ${success}, new landed state=${gameState.rocket.landed}`);
+                    console.log(`Rocket position: (${gameState.rocket.x.toFixed(2)}, ${gameState.rocket.y.toFixed(2)})`);
+                    console.log(`Rocket velocity: (${gameState.rocket.velocity.x.toFixed(2)}, ${gameState.rocket.velocity.y.toFixed(2)})`);
+                    break;
+                }
+            }
         }
     }
     

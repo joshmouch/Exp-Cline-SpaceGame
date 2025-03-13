@@ -1,7 +1,7 @@
 // Initial rocket state
 const initialRocketState = {
-    x: 0,
-    y: -EARTH_RADIUS - ROCKET_HEIGHT / 2,
+    x: CELESTIAL_BODIES.EARTH.position.x,
+    y: CELESTIAL_BODIES.EARTH.position.y - CELESTIAL_BODIES.EARTH.radius - ROCKET_HEIGHT / 2,
     angle: 0, // Pointing upward
     velocity: { x: 0, y: 0 },
     fuel: INITIAL_FUEL,
@@ -107,37 +107,43 @@ function accelerateRocket(rocket) {
 }
 
 /**
- * Launches the rocket from a surface
+ * Launches the rocket from a celestial body
  * @param {Object} rocket - The rocket object
- * @param {number} surfaceRadius - The radius of the surface (Earth or Moon)
+ * @param {Object} body - The celestial body to launch from
  */
-function launchRocket(rocket, surfaceRadius) {
+function launchRocket(rocket, body) {
     if (rocket.landed && !rocket.exploded && rocket.fuel > 0) {
         rocket.landed = false;
         const launchAngle = rocket.angle;
-        const launchDistance = surfaceRadius + ROCKET_HEIGHT / 2 + 1; // +1 to avoid immediate collision
-        rocket.x = Math.cos(launchAngle - Math.PI / 2) * launchDistance;
-        rocket.y = Math.sin(launchAngle - Math.PI / 2) * launchDistance;
+        const launchDistance = body.radius + ROCKET_HEIGHT / 2 + 1; // +1 to avoid immediate collision
+        
+        // Calculate position relative to the body
+        rocket.x = body.position.x + Math.cos(launchAngle - Math.PI / 2) * launchDistance;
+        rocket.y = body.position.y + Math.sin(launchAngle - Math.PI / 2) * launchDistance;
+        
+        // Add initial velocity in the direction the rocket is pointing
+        rocket.velocity.x = Math.sin(rocket.angle) * ACCELERATION_RATE * 10;
+        rocket.velocity.y = -Math.cos(rocket.angle) * ACCELERATION_RATE * 10;
+        
+        console.log(`Launching rocket with velocity: (${rocket.velocity.x}, ${rocket.velocity.y})`);
         return true;
     }
     return false;
 }
 
 /**
- * Checks if the rocket can land safely on a surface
+ * Checks if the rocket can land safely on a celestial body
  * @param {Object} rocket - The rocket object
- * @param {number} surfaceX - X coordinate of the surface center
- * @param {number} surfaceY - Y coordinate of the surface center
- * @param {number} surfaceRadius - Radius of the surface
+ * @param {Object} body - The celestial body to land on
  * @param {number} safeVelocity - Maximum safe landing velocity
  * @returns {Object} Landing result with success flag and landing angle
  */
-function checkLanding(rocket, surfaceX, surfaceY, surfaceRadius, safeVelocity) {
-    const dx = surfaceX - rocket.x;
-    const dy = surfaceY - rocket.y;
+function checkLanding(rocket, body, safeVelocity = SAFE_LANDING_VELOCITY) {
+    const dx = body.position.x - rocket.x;
+    const dy = body.position.y - rocket.y;
     const distanceToSurface = Math.sqrt(dx * dx + dy * dy);
     
-    if (distanceToSurface < surfaceRadius + ROCKET_HEIGHT / 2) {
+    if (distanceToSurface < body.radius + ROCKET_HEIGHT / 2) {
         const speed = Math.sqrt(rocket.velocity.x * rocket.velocity.x + rocket.velocity.y * rocket.velocity.y);
         const landingAngle = Math.atan2(dy, dx) - Math.PI / 2;
         const angleDifference = Math.abs(normalizeAngle(rocket.angle - landingAngle));
@@ -145,7 +151,7 @@ function checkLanding(rocket, surfaceX, surfaceY, surfaceRadius, safeVelocity) {
         return {
             success: speed < safeVelocity && angleDifference < Math.PI / 4,
             landingAngle: landingAngle,
-            landingDistance: surfaceRadius + ROCKET_HEIGHT / 2
+            landingDistance: body.radius + ROCKET_HEIGHT / 2
         };
     }
     

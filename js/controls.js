@@ -150,20 +150,26 @@ function cycleFocus(controls) {
  * @param {Object} camera - The camera object
  */
 function handleInput(controls, rocket, camera) {
-    // Handle rotation with A and D keys
-    if (controls.keysPressed['a'] || controls.keysPressed['A']) {
-        rocket.angle -= ROTATION_RATE;
+    // Handle rotation with A and D keys - only if not landed
+    if (!rocket.landed && !rocket.exploded) {
+        if (controls.keysPressed['a'] || controls.keysPressed['A']) {
+            rocket.angle -= ROTATION_RATE;
+            console.log(`Rotating left, new angle: ${rocket.angle.toFixed(2)}`);
+        }
+        
+        if (controls.keysPressed['d'] || controls.keysPressed['D']) {
+            rocket.angle += ROTATION_RATE;
+            console.log(`Rotating right, new angle: ${rocket.angle.toFixed(2)}`);
+        }
     }
     
-    if (controls.keysPressed['d'] || controls.keysPressed['D']) {
-        rocket.angle += ROTATION_RATE;
-    }
-    
-    // Handle acceleration with W key
-    if (controls.keysPressed['w'] || controls.keysPressed['W']) {
-        setAcceleration(rocket, true);
-    } else {
-        setAcceleration(rocket, false);
+    // Handle acceleration with W key - only if not already accelerating from button
+    if (!controls.accelerateButtonActive) {
+        if (controls.keysPressed['w'] || controls.keysPressed['W']) {
+            setAcceleration(rocket, true);
+        } else {
+            setAcceleration(rocket, false);
+        }
     }
     
     // Handle focus cycling with F key
@@ -207,18 +213,29 @@ function setAcceleration(rocket, state, isToggle = false) {
             rocket.accelerating = !rocket.accelerating;
             console.log('Toggling acceleration to:', rocket.accelerating);
             document.getElementById('accelerateBtn').classList.toggle('active', rocket.accelerating);
+            
+            // Update the controls state to track button activation
+            const controls = window.gameControls; // Access the global controls object
+            if (controls) {
+                controls.accelerateButtonActive = rocket.accelerating;
+                console.log('Button active state set to:', controls.accelerateButtonActive);
+            }
         } else {
             rocket.accelerating = false;
             document.getElementById('accelerateBtn').classList.remove('active');
+            
+            // Update the controls state
+            const controls = window.gameControls;
+            if (controls) {
+                controls.accelerateButtonActive = false;
+            }
         }
     } else {
-        // Direct mode (for key)
-        if (rocket.fuel > 0 && !rocket.exploded && state) {
-            rocket.accelerating = true;
-            document.getElementById('accelerateBtn').classList.add('active');
+        // Direct mode (for key) - only set the rocket's state, don't affect the button
+        if (rocket.fuel > 0 && !rocket.exploded) {
+            rocket.accelerating = state;
         } else {
             rocket.accelerating = false;
-            document.getElementById('accelerateBtn').classList.remove('active');
         }
     }
 }
@@ -232,7 +249,13 @@ function updateUI(rocket, orbitCount) {
     // Update fuel, altitude, and velocity displays
     document.getElementById('fuelLevel').textContent = Math.round(rocket.fuel);
     
-    const altitude = Math.max(0, Math.sqrt(rocket.x * rocket.x + rocket.y * rocket.y) - 150); // 150 is EARTH_RADIUS
+    // Calculate distance from Earth center
+    const dx = rocket.x - CELESTIAL_BODIES.EARTH.position.x;
+    const dy = rocket.y - CELESTIAL_BODIES.EARTH.position.y;
+    const distanceFromEarth = Math.sqrt(dx * dx + dy * dy);
+    
+    // Calculate altitude above Earth surface
+    const altitude = Math.max(0, distanceFromEarth - CELESTIAL_BODIES.EARTH.radius);
     document.getElementById('altitude').textContent = Math.round(altitude);
     
     const velocity = Math.sqrt(rocket.velocity.x * rocket.velocity.x + rocket.velocity.y * rocket.velocity.y);
