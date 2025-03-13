@@ -63,23 +63,67 @@ function renderScene(ctx, gameState) {
  */
 function drawTrajectory(ctx, rocket, trajectoryPoints) {
     if (trajectoryPoints.length > 0) {
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.lineWidth = 2;
+        // Draw a single continuous trajectory line with gradient opacity
         ctx.beginPath();
         ctx.moveTo(rocket.x, rocket.y);
+        
+        // Create a gradient for the line with more vibrant colors
+        const gradient = ctx.createLinearGradient(
+            rocket.x, rocket.y,
+            trajectoryPoints[trajectoryPoints.length - 1].x,
+            trajectoryPoints[trajectoryPoints.length - 1].y
+        );
+        gradient.addColorStop(0, 'rgba(0, 255, 255, 0.9)'); // Bright cyan at start
+        gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.7)'); // White in middle
+        gradient.addColorStop(1, 'rgba(255, 0, 255, 0.3)'); // Fading to magenta
+        
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 4; // Increased line width for better visibility
+        
+        // Draw the trajectory path
         trajectoryPoints.forEach(point => {
             ctx.lineTo(point.x, point.y);
         });
         ctx.stroke();
         
-        // Draw dots at intervals to make trajectory more visible
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-        for (let i = 0; i < trajectoryPoints.length; i += 10) {
+        // Draw dots at intervals with fading opacity
+        for (let i = 0; i < trajectoryPoints.length; i += 15) {
             if (i < trajectoryPoints.length) {
+                const point = trajectoryPoints[i];
+                const opacity = point.opacity !== undefined ? point.opacity : 0.8;
+                const dotSize = Math.max(1, 3 - (i / trajectoryPoints.length) * 2); // Dots get smaller with distance
+                
+                ctx.fillStyle = `rgba(255, 255, 255, ${opacity * 0.9})`;
                 ctx.beginPath();
-                ctx.arc(trajectoryPoints[i].x, trajectoryPoints[i].y, 2, 0, Math.PI * 2);
+                ctx.arc(point.x, point.y, dotSize, 0, Math.PI * 2);
                 ctx.fill();
             }
+        }
+        
+        // Draw an arrow at the end of the trajectory to indicate direction
+        if (trajectoryPoints.length > 2) {
+            const lastPoint = trajectoryPoints[trajectoryPoints.length - 1];
+            const prevPoint = trajectoryPoints[trajectoryPoints.length - 2];
+            
+            // Calculate direction vector
+            const dx = lastPoint.x - prevPoint.x;
+            const dy = lastPoint.y - prevPoint.y;
+            const angle = Math.atan2(dy, dx);
+            
+            // Draw arrow head
+            ctx.save();
+            ctx.translate(lastPoint.x, lastPoint.y);
+            ctx.rotate(angle);
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-10, -5);
+            ctx.lineTo(-10, 5);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
         }
     }
 }

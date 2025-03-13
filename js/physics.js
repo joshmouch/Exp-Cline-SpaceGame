@@ -57,30 +57,51 @@ function calculateTrajectory(rocket, points) {
     }
     
     const trajectoryPoints = [];
+    
+    // Make a copy of the rocket's current state for simulation
     let simX = rocket.x;
     let simY = rocket.y;
     let simVelX = rocket.velocity.x;
     let simVelY = rocket.velocity.y;
     
-    for (let i = 0; i < points; i++) {
+    // Use 3x more points as requested
+    const extendedPoints = points * 3;
+    const timeStep = 1.0; // Simulation time step
+    
+    for (let i = 0; i < extendedPoints; i++) {
         // Simulate Earth gravity
         const distanceToEarth = calculateDistance(simX, simY);
-        const gravityForce = GRAVITY_FACTOR * (EARTH_RADIUS * EARTH_RADIUS) / (distanceToEarth * distanceToEarth);
-        const gravityAngle = Math.atan2(simY, simX);
-        
-        simVelX += Math.cos(gravityAngle) * gravityForce;
-        simVelY += Math.sin(gravityAngle) * gravityForce;
-        
-        // Update position
-        simX += simVelX;
-        simY += simVelY;
         
         // Check for collision with Earth
-        if (calculateDistance(simX, simY) < EARTH_RADIUS) {
+        if (distanceToEarth < EARTH_RADIUS) {
             break;
         }
         
-        trajectoryPoints.push({ x: simX, y: simY });
+        // Calculate gravity force
+        const gravityForce = GRAVITY_FACTOR * (EARTH_RADIUS * EARTH_RADIUS) / (distanceToEarth * distanceToEarth);
+        
+        // Calculate direction of gravity (towards Earth center)
+        const gravityAngle = Math.atan2(simY, simX);
+        
+        // Apply gravity to velocity (Earth pulls inward)
+        simVelX += Math.cos(gravityAngle) * gravityForce * timeStep;
+        simVelY += Math.sin(gravityAngle) * gravityForce * timeStep;
+        
+        // Update position based on velocity
+        simX += simVelX * timeStep;
+        simY += simVelY * timeStep;
+        
+        // Store point with opacity information (for dimming effect)
+        trajectoryPoints.push({ 
+            x: simX, 
+            y: simY,
+            opacity: 1 - (i / extendedPoints) // Opacity decreases with distance
+        });
+        
+        // If we've gone too far, stop calculating
+        if (distanceToEarth > EARTH_RADIUS * 20) {
+            break;
+        }
     }
     
     return trajectoryPoints;
