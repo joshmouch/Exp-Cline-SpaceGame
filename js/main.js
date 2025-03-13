@@ -43,8 +43,8 @@ function init() {
         resetGame
     );
     
-    // Set the dropdown value to match the initial destination
-    document.getElementById('destinationSelect').value = gameState.controls.destination;
+    // Set the dropdown value to match the initial focus
+    document.getElementById('focusSelect').value = gameState.controls.focus;
     
     // Start the game loop
     requestAnimationFrame(gameLoop);
@@ -66,12 +66,12 @@ function resetGame() {
     gameState.orbitCount = 0;
     gameState.lastQuadrant = 0;
     
-    // Reset controls but keep the destination as Sun for testing
-    gameState.controls.destination = 'sun';
+    // Reset controls
+    gameState.controls.focus = 'ship';
     
     // Reset UI
     document.getElementById('accelerateBtn').classList.remove('active');
-    document.getElementById('destinationSelect').value = 'sun';
+    document.getElementById('focusSelect').value = 'ship';
 }
 
 /**

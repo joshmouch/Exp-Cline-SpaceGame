@@ -18,19 +18,12 @@
                 <button id="zoomInBtn">Zoom In <span class="shortcut">[+]</span></button>
                 <button id="zoomOutBtn">Zoom Out <span class="shortcut">[-]</span></button>
             </div>
-            <div class="toggle-controls">
-                <label class="toggle">
-                    <input type="checkbox" id="centerShipToggle" checked>
-                    <span class="toggle-label">Center Ship <span class="shortcut">[C]</span></span>
-                </label>
-                <label class="toggle">
-                    <input type="checkbox" id="autoZoomToggle" checked>
-                    <span class="toggle-label">Auto-Zoom <span class="shortcut">[A]</span></span>
-                </label>
-                <div class="destination-select">
-                    <label for="destinationSelect">Destination:</label>
-                    <select id="destinationSelect">
-                        <option value="none">None</option>
+            <div class="focus-controls">
+                <div class="focus-select">
+                    <label for="focusSelect">Focus:</label>
+                    <select id="focusSelect">
+                        <option value="ship">Ship</option>
+                        <option value="manual">Manual</option>
                         <option value="earth">Earth</option>
                         <option value="moon">Moon</option>
                         <option value="sun">Sun</option>

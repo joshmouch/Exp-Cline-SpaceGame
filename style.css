@@ -44,43 +44,26 @@ canvas {
     gap: 10px;
 }
 
-.toggle-controls {
+.focus-controls {
     width: 100%;
     display: flex;
     justify-content: center;
-    gap: 20px;
     margin-top: 10px;
     flex-wrap: wrap;
 }
 
-.toggle {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
-}
-
-.toggle input {
-    margin-right: 8px;
-    cursor: pointer;
-}
-
-.toggle-label {
-    font-size: 14px;
-}
-
-.destination-select {
+.focus-select {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-top: 5px;
 }
 
-.destination-select label {
+.focus-select label {
     font-size: 14px;
 }
 
-.destination-select select {
+.focus-select select {
     background-color: #4a5568;
     color: white;
     border: none;
@@ -89,7 +72,7 @@ canvas {
     cursor: pointer;
 }
 
-.destination-select select:hover {
+.focus-select select:hover {
     background-color: #2d3748;
 }
 

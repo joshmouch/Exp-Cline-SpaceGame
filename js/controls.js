@@ -6,9 +6,9 @@ function createControls() {
     return {
         keysPressed: {},
         accelerateButtonActive: false,
-        centerShip: true,
-        autoZoom: true,
-        destination: 'sun'  // Set default destination to Sun for testing
+        focus: 'ship',
+        isDragging: false,
+        lastMousePos: { x: 0, y: 0 }
     };
 }
 
@@ -20,21 +20,11 @@ function createControls() {
  * @param {Function} resetGame - Function to reset the game
  */
 function setupEventListeners(controls, camera, toggleAcceleration, resetGame) {
+    const canvas = document.getElementById('gameCanvas');
+    
     // Keyboard controls
     window.addEventListener('keydown', e => {
         controls.keysPressed[e.key] = true;
-        
-        // Handle toggle shortcuts
-        if (e.key === 'c' || e.key === 'C') {
-            controls.centerShip = !controls.centerShip;
-            document.getElementById('centerShipToggle').checked = controls.centerShip;
-        }
-        
-        if (e.key === 'a' || e.key === 'A') {
-            controls.autoZoom = !controls.autoZoom;
-            document.getElementById('autoZoomToggle').checked = controls.autoZoom;
-            updateZoomControlsVisibility(controls.autoZoom);
-        }
         
         // Handle reset shortcut
         if (e.key === 'r' || e.key === 'R') {
@@ -44,6 +34,49 @@ function setupEventListeners(controls, camera, toggleAcceleration, resetGame) {
     
     window.addEventListener('keyup', e => {
         controls.keysPressed[e.key] = false;
+    });
+    
+    // Mouse controls for camera
+    canvas.addEventListener('mousedown', e => {
+        controls.isDragging = true;
+        controls.lastMousePos = { x: e.clientX, y: e.clientY };
+    });
+    
+    window.addEventListener('mousemove', e => {
+        if (controls.isDragging) {
+            const dx = e.clientX - controls.lastMousePos.x;
+            const dy = e.clientY - controls.lastMousePos.y;
+            
+            // Move camera in opposite direction of mouse movement
+            camera.x -= dx / camera.zoom;
+            camera.y -= dy / camera.zoom;
+            
+            controls.lastMousePos = { x: e.clientX, y: e.clientY };
+            
+            // Set focus to manual when dragging
+            controls.focus = 'manual';
+            document.getElementById('focusSelect').value = 'manual';
+        }
+    });
+    
+    window.addEventListener('mouseup', () => {
+        controls.isDragging = false;
+    });
+    
+    window.addEventListener('mouseleave', () => {
+        controls.isDragging = false;
+    });
+    
+    // Mouse wheel for zoom
+    canvas.addEventListener('wheel', e => {
+        e.preventDefault();
+        if (e.deltaY < 0) {
+            // Zoom in
+            zoomIn(camera);
+        } else {
+            // Zoom out
+            zoomOut(camera);
+        }
     });
     
     // Button controls
@@ -87,32 +120,13 @@ function setupEventListeners(controls, camera, toggleAcceleration, resetGame) {
         resetGame();
     });
     
-    // Toggle controls
-    document.getElementById('centerShipToggle').addEventListener('change', (e) => {
-        controls.centerShip = e.target.checked;
+    // Focus dropdown
+    document.getElementById('focusSelect').addEventListener('change', (e) => {
+        controls.focus = e.target.value;
     });
     
-    document.getElementById('autoZoomToggle').addEventListener('change', (e) => {
-        controls.autoZoom = e.target.checked;
-        updateZoomControlsVisibility(controls.autoZoom);
-    });
-    
-    // Destination dropdown
-    document.getElementById('destinationSelect').addEventListener('change', (e) => {
-        controls.destination = e.target.value;
-    });
-    
-    // Initialize zoom controls visibility
-    updateZoomControlsVisibility(controls.autoZoom);
-}
-
-/**
- * Updates the visibility of zoom controls based on auto-zoom setting
- * @param {boolean} autoZoom - Whether auto-zoom is enabled
- */
-function updateZoomControlsVisibility(autoZoom) {
-    const zoomControls = document.getElementById('zoomControls');
-    zoomControls.style.display = autoZoom ? 'none' : 'flex';
+    // Always show zoom controls
+    document.getElementById('zoomControls').style.display = 'flex';
 }
 
 /**
@@ -140,19 +154,17 @@ function handleInput(controls, rocket, camera) {
         document.getElementById('accelerateBtn').classList.remove('active');
     }
     
-    // Handle zoom with + and - keys (only when auto-zoom is disabled)
-    if (!controls.autoZoom) {
-        if (controls.keysPressed['+'] || controls.keysPressed['=']) {
-            zoomIn(camera);
-            controls.keysPressed['+'] = false;
-            controls.keysPressed['='] = false;
-        }
-        
-        if (controls.keysPressed['-'] || controls.keysPressed['_']) {
-            zoomOut(camera);
-            controls.keysPressed['-'] = false;
-            controls.keysPressed['_'] = false;
-        }
+    // Handle zoom with + and - keys
+    if (controls.keysPressed['+'] || controls.keysPressed['=']) {
+        zoomIn(camera);
+        controls.keysPressed['+'] = false;
+        controls.keysPressed['='] = false;
+    }
+    
+    if (controls.keysPressed['-'] || controls.keysPressed['_']) {
+        zoomOut(camera);
+        controls.keysPressed['-'] = false;
+        controls.keysPressed['_'] = false;
     }
 }
 
