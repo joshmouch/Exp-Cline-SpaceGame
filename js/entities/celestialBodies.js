@@ -574,16 +574,33 @@ function createStars(count, maxDistance = 1000) {
 function createClouds(count) {
     const clouds = [];
     for (let i = 0; i < count; i++) {
-        // Create simpler cloud shapes
-        const cloudWidth = Math.random() * 30 + 20; // Slightly smaller clouds
-        const cloudHeight = Math.random() * 10 + 5; // Flatter clouds to hug Earth's curvature
+        // Create flatter cloud shapes
+        const cloudWidth = Math.random() * 35 + 25; // Slightly wider
+        const cloudHeight = Math.random() * 6 + 4; // Much flatter
+        
+        // All clouds move in the same direction (positive = counterclockwise)
+        // Speed range increased by 10x for faster movement
+        const speed = (Math.random() * 0.001 + 0.0005); // 10x faster than before
+        
+        // Add some bumps to make clouds look puffy but flat
+        const bumpCount = Math.floor(Math.random() * 3) + 2; // 2-4 bumps per cloud
+        const bumps = [];
+        
+        for (let j = 0; j < bumpCount; j++) {
+            bumps.push({
+                offsetX: (Math.random() * 0.7 - 0.35) * cloudWidth, // Offset within cloud width
+                offsetY: (Math.random() * 0.4 - 0.2) * cloudHeight, // Smaller vertical offset for flatter appearance
+                size: (Math.random() * 0.3 + 0.2) * cloudHeight // Smaller bumps for flatter appearance
+            });
+        }
         
         clouds.push({
             angle: Math.random() * Math.PI * 2, // Position around Earth
             width: cloudWidth,
             height: cloudHeight,
-            opacity: 0.2 + Math.random() * 0.2, // More transparent (0.2-0.4 range)
-            speed: (Math.random() * 0.0001 + 0.00005) * (Math.random() > 0.5 ? 1 : -1) // Slow movement
+            opacity: 0.25 + Math.random() * 0.15, // Slightly more solid (0.25-0.4 range)
+            speed: speed, // All positive for same direction
+            bumps: bumps // Add bumps for puffy appearance
         });
     }
     return clouds;
@@ -614,6 +631,11 @@ function createWaterTwinkles(count) {
 function updateClouds(clouds) {
     clouds.forEach(cloud => {
         cloud.angle += cloud.speed;
+        
+        // Keep angle within 0-2π range to avoid floating point issues over time
+        if (cloud.angle > Math.PI * 2) {
+            cloud.angle -= Math.PI * 2;
+        }
     });
 }
 
@@ -690,7 +712,7 @@ function drawEarth(ctx, gameTime, waterTwinkles, clouds) {
         ctx.fill();
     });
     
-    // Draw simplified, cartoony clouds that hug Earth's curvature
+    // Draw puffier, cartoony clouds that hug Earth's curvature
     ctx.globalCompositeOperation = 'lighter';
     clouds.forEach(cloud => {
         // Position cloud to follow Earth's curvature
@@ -701,26 +723,29 @@ function drawEarth(ctx, gameTime, waterTwinkles, clouds) {
         const cloudCenterX = x + Math.cos(cloudAngle) * cloudDistance;
         const cloudCenterY = y + Math.sin(cloudAngle) * cloudDistance;
         
-        // Draw simplified cloud shape
+        // Draw cloud shape
         ctx.save();
         ctx.translate(cloudCenterX, cloudCenterY);
         ctx.rotate(cloudAngle + Math.PI/2); // Rotate to follow Earth's curvature
         
-        // Create a simple, cartoony cloud gradient
-        const cloudGradient = ctx.createRadialGradient(
-            0, 0, 0,
-            0, 0, cloud.width
-        );
-        cloudGradient.addColorStop(0, `rgba(255, 255, 255, ${cloud.opacity})`);
-        cloudGradient.addColorStop(0.7, `rgba(255, 255, 255, ${cloud.opacity * 0.7})`);
-        cloudGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        // Use a solid color with minimal gradient for a flatter look
+        ctx.fillStyle = `rgba(255, 255, 255, ${cloud.opacity})`;
         
-        ctx.fillStyle = cloudGradient;
-        
-        // Draw a simple elliptical cloud shape
+        // Draw main cloud body as a flat ellipse
         ctx.beginPath();
         ctx.ellipse(0, 0, cloud.width, cloud.height, 0, 0, Math.PI * 2);
         ctx.fill();
+        
+        // Draw bumps to maintain some puffiness while keeping flat
+        cloud.bumps.forEach(bump => {
+            // Use the same solid color for bumps
+            ctx.fillStyle = `rgba(255, 255, 255, ${cloud.opacity * 1.1})`; // Just slightly brighter
+            
+            // Draw bump
+            ctx.beginPath();
+            ctx.arc(bump.offsetX, bump.offsetY, bump.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
         
         ctx.restore();
     });
