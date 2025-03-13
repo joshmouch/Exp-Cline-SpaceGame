@@ -58,63 +58,84 @@ function updateCamera(camera, rocket, trajectoryPoints, controls, maxDistance = 
         camera.y += (centerY - camera.y) * 0.05;
     }
     
-    // Update zoom based on auto-zoom setting
+    // Update zoom only if auto-zoom is enabled
     if (controls.autoZoom) {
-        // If we have trajectory points, fit them in the view
-        if (trajectoryPoints.length > 0) {
-            // Find the bounding box of the trajectory
-            let minX = rocket.x;
-            let minY = rocket.y;
-            let maxX = rocket.x;
-            let maxY = rocket.y;
-            
-            // Include Earth in the bounding box
-            minX = Math.min(minX, -EARTH_RADIUS);
-            minY = Math.min(minY, -EARTH_RADIUS);
-            maxX = Math.max(maxX, EARTH_RADIUS);
-            maxY = Math.max(maxY, EARTH_RADIUS);
-            
-            // Include trajectory points in the bounding box
+        // Find the bounding box based on destination
+        let minX = rocket.x;
+        let minY = rocket.y;
+        let maxX = rocket.x;
+        let maxY = rocket.y;
+        
+        // Always include Earth in the bounding box
+        minX = Math.min(minX, -EARTH_RADIUS);
+        minY = Math.min(minY, -EARTH_RADIUS);
+        maxX = Math.max(maxX, EARTH_RADIUS);
+        maxY = Math.max(maxY, EARTH_RADIUS);
+        
+        // Include trajectory points in the bounding box if no specific destination
+        if (controls.destination === 'none' && trajectoryPoints.length > 0) {
             for (let i = 0; i < trajectoryPoints.length; i++) {
                 minX = Math.min(minX, trajectoryPoints[i].x);
                 minY = Math.min(minY, trajectoryPoints[i].y);
                 maxX = Math.max(maxX, trajectoryPoints[i].x);
                 maxY = Math.max(maxY, trajectoryPoints[i].y);
             }
-            
-            // Calculate the width and height of the bounding box
-            const width = maxX - minX;
-            const height = maxY - minY;
-            
-            // Add a buffer (20% of the size)
-            const buffer = 0.2;
-            const bufferedWidth = width * (1 + buffer);
-            const bufferedHeight = height * (1 + buffer);
-            
-            // Calculate the zoom level needed to fit the bounding box
-            const zoomX = 900 / bufferedWidth; // 900 is the canvas width
-            const zoomY = 600 / bufferedHeight; // 600 is the canvas height
-            
-            // Use the smaller zoom level to ensure everything fits
-            let idealZoom = Math.min(zoomX, zoomY);
-            
-            // Ensure zoom is within bounds
-            idealZoom = Math.max(minZoom, Math.min(idealZoom, maxZoom));
-            
-            // Set the target zoom
-            camera.targetZoom = idealZoom;
-        } else {
-            // Fall back to distance-based zoom if no trajectory
-            let distanceRatio = Math.min(distanceToEarthCenter / maxDistance, 1);
-            let idealZoom = maxZoom - (maxZoom - minZoom) * distanceRatio;
-            
-            // Ensure we can always see Earth
-            camera.targetZoom = Math.max(minZoom, Math.min(idealZoom, maxZoom));
+        } 
+        // Include specific destination in the bounding box
+        else if (controls.destination !== 'none' && controls.destination !== 'earth') {
+            if (controls.destination === 'moon') {
+                minX = Math.min(minX, MOON_POSITION.x - MOON_RADIUS);
+                minY = Math.min(minY, MOON_POSITION.y - MOON_RADIUS);
+                maxX = Math.max(maxX, MOON_POSITION.x + MOON_RADIUS);
+                maxY = Math.max(maxY, MOON_POSITION.y + MOON_RADIUS);
+            } else if (controls.destination === 'sun') {
+                minX = Math.min(minX, SUN_POSITION.x - SUN_RADIUS);
+                minY = Math.min(minY, SUN_POSITION.y - SUN_RADIUS);
+                maxX = Math.max(maxX, SUN_POSITION.x + SUN_RADIUS);
+                maxY = Math.max(maxY, SUN_POSITION.y + SUN_RADIUS);
+            } else {
+                // Handle planets
+                const planetPos = PLANET_POSITIONS[controls.destination];
+                const planetRadius = PLANET_RADII[controls.destination];
+                
+                if (planetPos && planetRadius) {
+                    minX = Math.min(minX, planetPos.x - planetRadius);
+                    minY = Math.min(minY, planetPos.y - planetRadius);
+                    maxX = Math.max(maxX, planetPos.x + planetRadius);
+                    maxY = Math.max(maxY, planetPos.y + planetRadius);
+                }
+            }
         }
+        
+        // Calculate the width and height of the bounding box
+        const width = maxX - minX;
+        const height = maxY - minY;
+        
+        // Add a buffer (20% of the size)
+        const buffer = 0.2;
+        const bufferedWidth = width * (1 + buffer);
+        const bufferedHeight = height * (1 + buffer);
+        
+        // Calculate the zoom level needed to fit the bounding box
+        const zoomX = 900 / bufferedWidth; // 900 is the canvas width
+        const zoomY = 600 / bufferedHeight; // 600 is the canvas height
+        
+        // Use the smaller zoom level to ensure everything fits
+        let idealZoom = Math.min(zoomX, zoomY);
+        
+        // Ensure zoom is within bounds
+        idealZoom = Math.max(minZoom, Math.min(idealZoom, maxZoom));
+        
+        // Set the target zoom
+        camera.targetZoom = idealZoom;
     }
     
     // Always update the actual zoom based on target zoom (whether auto-zoom is enabled or not)
-    camera.zoom += (camera.targetZoom - camera.zoom) * 0.05;
+    // Use an adaptive adjustment rate for more responsive zooming
+    // The larger the difference between current and target zoom, the faster the adjustment
+    const zoomDifference = Math.abs(camera.targetZoom - camera.zoom);
+    const adaptiveRate = Math.min(0.3, Math.max(0.1, zoomDifference * 0.5));
+    camera.zoom += (camera.targetZoom - camera.zoom) * adaptiveRate;
 }
 
 /**

@@ -50,6 +50,7 @@ canvas {
     justify-content: center;
     gap: 20px;
     margin-top: 10px;
+    flex-wrap: wrap;
 }
 
 .toggle {
@@ -66,6 +67,30 @@ canvas {
 
 .toggle-label {
     font-size: 14px;
+}
+
+.destination-select {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 5px;
+}
+
+.destination-select label {
+    font-size: 14px;
+}
+
+.destination-select select {
+    background-color: #4a5568;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.destination-select select:hover {
+    background-color: #2d3748;
 }
 
 button {

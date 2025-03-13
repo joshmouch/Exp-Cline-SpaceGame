@@ -1,4 +1,4 @@
-   /**
+/**
  * Creates a controls object
  * @returns {Object} A new controls object
  */
@@ -7,7 +7,8 @@ function createControls() {
         keysPressed: {},
         accelerateButtonActive: false,
         centerShip: true,
-        autoZoom: true
+        autoZoom: true,
+        destination: 'sun'  // Set default destination to Sun for testing
     };
 }
 
@@ -94,6 +95,11 @@ function setupEventListeners(controls, camera, toggleAcceleration, resetGame) {
     document.getElementById('autoZoomToggle').addEventListener('change', (e) => {
         controls.autoZoom = e.target.checked;
         updateZoomControlsVisibility(controls.autoZoom);
+    });
+    
+    // Destination dropdown
+    document.getElementById('destinationSelect').addEventListener('change', (e) => {
+        controls.destination = e.target.value;
     });
     
     // Initialize zoom controls visibility

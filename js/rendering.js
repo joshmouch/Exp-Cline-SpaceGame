@@ -26,12 +26,10 @@ function renderScene(ctx, gameState) {
     // Draw stars
     drawStars(ctx, stars, gameTime);
     
-    // Draw sun and planets if zoomed out
-    if (camera.zoom < 0.5) {
-        drawSun(ctx, gameTime);
-        drawPlanets(ctx);
-        drawMoon(ctx);
-    }
+    // Always draw sun and planets
+    drawSun(ctx, gameTime);
+    drawPlanets(ctx);
+    drawMoon(ctx);
     
     // Draw Earth
     drawEarth(ctx, gameTime, waterTwinkles, clouds);

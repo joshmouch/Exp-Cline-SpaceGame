@@ -43,6 +43,9 @@ function init() {
         resetGame
     );
     
+    // Set the dropdown value to match the initial destination
+    document.getElementById('destinationSelect').value = gameState.controls.destination;
+    
     // Start the game loop
     requestAnimationFrame(gameLoop);
 }
@@ -63,8 +66,12 @@ function resetGame() {
     gameState.orbitCount = 0;
     gameState.lastQuadrant = 0;
     
+    // Reset controls but keep the destination as Sun for testing
+    gameState.controls.destination = 'sun';
+    
     // Reset UI
     document.getElementById('accelerateBtn').classList.remove('active');
+    document.getElementById('destinationSelect').value = 'sun';
 }
 
 /**
@@ -95,10 +102,9 @@ function update() {
         // Apply gravity from celestial bodies
         applyEarthGravity(gameState.rocket);
         
-        if (gameState.camera.zoom < 0.5) {
-            applyMoonGravity(gameState.rocket);
-            applySunGravity(gameState.rocket);
-        }
+        // Always apply gravity from all celestial bodies regardless of zoom level
+        applyMoonGravity(gameState.rocket);
+        applySunGravity(gameState.rocket);
         
         // Update rocket position
         updateRocketPosition(gameState.rocket);
@@ -139,27 +145,25 @@ function update() {
             gameState.rocket.velocity = { x: 0, y: 0 };
         }
         
-        // Check for collision with Moon when zoomed out
-        if (gameState.camera.zoom < 0.5) {
-            const moonLandingResult = checkLanding(
-                gameState.rocket, 
-                MOON_POSITION.x, MOON_POSITION.y, // Moon position
-                MOON_RADIUS, // Moon radius
-                1.0 // Safe landing velocity
-            );
-            
-            if (moonLandingResult.success) {
-                // Safe landing on Moon
-                gameState.rocket.landed = true;
-                gameState.rocket.velocity = { x: 0, y: 0 };
-                gameState.rocket.x = MOON_POSITION.x + Math.cos(moonLandingResult.landingAngle) * moonLandingResult.landingDistance;
-                gameState.rocket.y = MOON_POSITION.y + Math.sin(moonLandingResult.landingAngle) * moonLandingResult.landingDistance;
-                gameState.rocket.angle = moonLandingResult.landingAngle;
-            } else if (moonLandingResult.landingAngle !== undefined) {
-                // Crash landing on Moon
-                gameState.rocket.exploded = true;
-                gameState.rocket.velocity = { x: 0, y: 0 };
-            }
+        // Always check for collision with Moon regardless of zoom level
+        const moonLandingResult = checkLanding(
+            gameState.rocket, 
+            MOON_POSITION.x, MOON_POSITION.y, // Moon position
+            MOON_RADIUS, // Moon radius
+            1.0 // Safe landing velocity
+        );
+        
+        if (moonLandingResult.success) {
+            // Safe landing on Moon
+            gameState.rocket.landed = true;
+            gameState.rocket.velocity = { x: 0, y: 0 };
+            gameState.rocket.x = MOON_POSITION.x + Math.cos(moonLandingResult.landingAngle) * moonLandingResult.landingDistance;
+            gameState.rocket.y = MOON_POSITION.y + Math.sin(moonLandingResult.landingAngle) * moonLandingResult.landingDistance;
+            gameState.rocket.angle = moonLandingResult.landingAngle;
+        } else if (moonLandingResult.landingAngle !== undefined) {
+            // Crash landing on Moon
+            gameState.rocket.exploded = true;
+            gameState.rocket.velocity = { x: 0, y: 0 };
         }
     } else if (gameState.rocket.landed && !gameState.rocket.exploded) {
         // Launch from surface
