@@ -200,48 +200,30 @@ function handleInput(controls, rocket, camera) {
 }
 
 /**
- * Sets the rocket's acceleration state
+ * Sets the acceleration state of the rocket
  * @param {Object} rocket - The rocket object
  * @param {boolean} state - Whether to accelerate or not
- * @param {boolean} isToggle - Whether to toggle the state (true) or set it directly (false)
+ * @param {boolean} isToggle - Whether this is a toggle action
  */
 function setAcceleration(rocket, state, isToggle = false) {
-    if (!rocket) {
-        console.error('Rocket object is undefined in setAcceleration');
-        return;
+    if (rocket.exploded) return;
+    
+    // Handle toggle behavior for the button
+    if (isToggle) {
+        window.gameControls.accelerateButtonActive = !window.gameControls.accelerateButtonActive;
+        state = window.gameControls.accelerateButtonActive;
     }
     
-    console.log('setAcceleration called with:', { rocket, state, isToggle });
+    // Update rocket state
+    rocket.accelerating = state;
     
-    if (isToggle) {
-        // Toggle mode (for button)
-        if (rocket.fuel > 0 && !rocket.exploded) {
-            rocket.accelerating = !rocket.accelerating;
-            console.log('Toggling acceleration to:', rocket.accelerating);
-            document.getElementById('accelerateBtn').classList.toggle('active', rocket.accelerating);
-            
-            // Update the controls state to track button activation
-            const controls = window.gameControls; // Access the global controls object
-            if (controls) {
-                controls.accelerateButtonActive = rocket.accelerating;
-                console.log('Button active state set to:', controls.accelerateButtonActive);
-            }
+    // Update button appearance
+    const accelerateBtn = document.getElementById('accelerateBtn');
+    if (accelerateBtn) {
+        if (state) {
+            accelerateBtn.classList.add('active');
         } else {
-            rocket.accelerating = false;
-            document.getElementById('accelerateBtn').classList.remove('active');
-            
-            // Update the controls state
-            const controls = window.gameControls;
-            if (controls) {
-                controls.accelerateButtonActive = false;
-            }
-        }
-    } else {
-        // Direct mode (for key) - only set the rocket's state, don't affect the button
-        if (rocket.fuel > 0 && !rocket.exploded) {
-            rocket.accelerating = state;
-        } else {
-            rocket.accelerating = false;
+            accelerateBtn.classList.remove('active');
         }
     }
 }
@@ -252,18 +234,67 @@ function setAcceleration(rocket, state, isToggle = false) {
  * @param {number} orbitCount - Number of completed orbits
  */
 function updateUI(rocket, orbitCount) {
-    // Update fuel, altitude, and velocity displays
+    // Update fuel display
     document.getElementById('fuelLevel').textContent = Math.round(rocket.fuel);
     
-    // Calculate distance from Earth center
-    const dx = rocket.x - CELESTIAL_BODIES.EARTH.position.x;
-    const dy = rocket.y - CELESTIAL_BODIES.EARTH.position.y;
-    const distanceFromEarth = Math.sqrt(dx * dx + dy * dy);
-    
-    // Calculate altitude above Earth surface
-    const altitude = Math.max(0, distanceFromEarth - CELESTIAL_BODIES.EARTH.radius);
-    document.getElementById('altitude').textContent = Math.round(altitude);
-    
+    // Update velocity display
     const velocity = Math.sqrt(rocket.velocity.x * rocket.velocity.x + rocket.velocity.y * rocket.velocity.y);
     document.getElementById('velocity').textContent = velocity.toFixed(2);
+    
+    updateAltitude(rocket);
 }
+
+/**
+ * Updates the altitude display
+ * @param {Object} rocket - The rocket object
+ */
+function updateAltitude(rocket) {
+    const altitude = calculateAltitude(rocket.x, rocket.y, CELESTIAL_BODIES.EARTH);
+    
+    // Format altitude with appropriate units
+    let displayAltitude;
+    if (altitude < 1000) {
+        displayAltitude = `${Math.round(altitude)}m`;
+    } else if (altitude < 1000000) {
+        displayAltitude = `${(altitude / 1000).toFixed(1)}km`;
+    } else {
+        displayAltitude = `${(altitude / 1000000).toFixed(1)}Mm`;
+    }
+    
+    // Update altitude display
+    const altitudeDisplay = document.getElementById('altitude');
+    if (altitudeDisplay) {
+        altitudeDisplay.textContent = `Altitude: ${displayAltitude}`;
+    }
+}
+
+/**
+ * Calculates the distance between two points
+ * @param {number} x1 - X-coordinate of the first point
+ * @param {number} y1 - Y-coordinate of the first point
+ * @param {number} x2 - X-coordinate of the second point
+ * @param {number} y2 - Y-coordinate of the second point
+ * @returns {number} The distance between the two points
+ */
+function calculateDistance(x1, y1, x2, y2) {
+    return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+}
+
+/**
+ * Calculates the altitude of an object above a celestial body
+ * @param {number} x - X-coordinate of the object
+ * @param {number} y - Y-coordinate of the object
+ * @param {Object} celestialBody - The celestial body object
+ * @returns {number} The altitude of the object above the celestial body
+ */
+function calculateAltitude(x, y, celestialBody) {
+    const distance = calculateDistance(x, y, celestialBody.position.x, celestialBody.position.y);
+    return Math.max(0, distance - celestialBody.radius);
+}
+
+// Export functions
+window.setAcceleration = setAcceleration;
+window.createControls = createControls;
+window.setupEventListeners = setupEventListeners;
+window.handleInput = handleInput;
+window.updateUI = updateUI;

@@ -24,17 +24,16 @@ function init() {
     gameState.ctx = gameState.canvas.getContext('2d');
     resizeCanvas(gameState.canvas);
     
-    // Create game objects
+    // Create game objects first
     gameState.rocket = createRocket();
-    console.log('Initial rocket state:', {
-        position: { x: gameState.rocket.x, y: gameState.rocket.y },
-        velocity: { x: gameState.rocket.velocity.x, y: gameState.rocket.velocity.y },
-        angle: gameState.rocket.angle,
-        landed: gameState.rocket.landed,
-        fuel: gameState.rocket.fuel
-    });
     gameState.camera = createCamera();
     gameState.controls = createControls();
+    
+    // Set initial rocket state
+    gameState.rocket.onBody = CELESTIAL_BODIES.EARTH;
+    
+    // Update orbital positions and rocket position
+    updateOrbits(Date.now() / 1000, gameState.rocket);
     
     // Make controls globally accessible for the setAcceleration function
     window.gameControls = gameState.controls;
@@ -63,8 +62,12 @@ function init() {
  * Resets the game to its initial state
  */
 function resetGame() {
-    // Reset rocket
+    // Create new rocket
     gameState.rocket = createRocket();
+    gameState.rocket.onBody = CELESTIAL_BODIES.EARTH;
+    
+    // Update orbital positions and rocket position
+    updateOrbits(gameState.gameTime, gameState.rocket);
     
     // Reset camera
     gameState.camera = createCamera();
@@ -77,6 +80,7 @@ function resetGame() {
     
     // Reset controls
     gameState.controls.focus = 'ship';
+    gameState.controls.accelerateButtonActive = false;
     
     // Reset UI
     document.getElementById('accelerateBtn').classList.remove('active');
@@ -98,6 +102,9 @@ function gameLoop(timestamp) {
  * Updates the game state
  */
 function update() {
+    // Update orbital positions and rocket position if landed
+    updateOrbits(gameState.gameTime, gameState.rocket);
+    
     // Handle user input
     handleInput(gameState.controls, gameState.rocket, gameState.camera);
     
@@ -150,18 +157,15 @@ function update() {
                     // Safe landing
                     gameState.rocket.landed = true;
                     gameState.rocket.velocity = { x: 0, y: 0 };
-                    gameState.rocket.x = body.position.x + Math.cos(landingResult.landingAngle) * landingResult.landingDistance;
-                    gameState.rocket.y = body.position.y + Math.sin(landingResult.landingAngle) * landingResult.landingDistance;
-                    gameState.rocket.angle = landingResult.landingAngle;
-                    console.log(`Landed on ${body.name}`);
+                    gameState.rocket.onBody = body;
+                    gameState.rocket.x = body.position.x + Math.cos(landingResult.landingAngle) * (body.radius + ROCKET_HEIGHT / 2);
+                    gameState.rocket.y = body.position.y + Math.sin(landingResult.landingAngle) * (body.radius + ROCKET_HEIGHT / 2);
+                    gameState.rocket.angle = landingResult.landingAngle - Math.PI / 2;
                 } else {
                     // Crash landing
                     gameState.rocket.exploded = true;
                     gameState.rocket.velocity = { x: 0, y: 0 };
-                    console.log(`Crashed on ${body.name}`);
                 }
-                
-                // Break the loop once we've landed or crashed
                 break;
             }
         }

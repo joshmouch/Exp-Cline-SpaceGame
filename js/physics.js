@@ -1,27 +1,51 @@
 /**
+ * Calculates gravity force between an object and a celestial body
+ * @param {Object} objectPos - Position of the object {x, y}
+ * @param {Object} body - The celestial body
+ * @returns {Object} Gravity force components and distance
+ */
+function calculateGravityForce(objectPos, body) {
+    const distanceSquared = calculateDistanceSquared(objectPos.x, objectPos.y, body.position.x, body.position.y);
+    const distance = Math.sqrt(distanceSquared);
+    const distanceToSurface = distance - body.radius;
+    
+    // Calculate gravity force using inverse law with decay factor
+    const gravityForce = GRAVITY_FACTOR * body.gravity * (body.radius * body.radius) * Math.pow(distanceToSurface, GRAVITY_SURFACE_DECAY_FACTOR) * Math.pow(distance, GRAVITY_DECAY_FACTOR);
+    const angle = Math.atan2(body.position.y - objectPos.y, body.position.x - objectPos.x);
+    
+    return {
+        force: gravityForce,
+        angle: angle,
+        distance: distance,
+        components: {
+            x: Math.cos(angle) * gravityForce,
+            y: Math.sin(angle) * gravityForce
+        }
+    };
+}
+
+/**
  * Applies gravity from a celestial body to the rocket
  * @param {Object} rocket - The rocket object
  * @param {Object} body - The celestial body object
  */
 function applyGravity(rocket, body) {
-    const dx = body.position.x - rocket.x;
-    const dy = body.position.y - rocket.y;
-    const distanceSquared = dx * dx + dy * dy;
-    const distance = Math.sqrt(distanceSquared);
-    
-    // Calculate gravity force using inverse square law
-    const gravityForce = GRAVITY_FACTOR * body.gravity * (body.radius * body.radius) / distanceSquared;
+    const gravity = calculateGravityForce(rocket, body);
     
     // Only apply gravity if it's above the minimum threshold
-    if (gravityForce > MIN_GRAVITY_THRESHOLD) {
-        const gravityAngle = Math.atan2(dy, dx);
-        
-        // Apply force to rocket velocity
-        rocket.velocity.x += Math.cos(gravityAngle) * gravityForce;
-        rocket.velocity.y += Math.sin(gravityAngle) * gravityForce;
+    if (gravity.force > MIN_GRAVITY_THRESHOLD) {
+        rocket.velocity.x += gravity.components.x;
+        rocket.velocity.y += gravity.components.y;
     }
     
-    return distance;
+    // Check if the rocket is landing on the body
+    if (rocket.landed && rocket.onBody === body) {
+        // Ensure the rocket's position is set correctly on the surface
+        rocket.x = body.position.x;
+        rocket.y = body.position.y - body.radius - ROCKET_HEIGHT / 2; // On top of Earth
+    }
+    
+    return gravity.distance;
 }
 
 /**
@@ -35,9 +59,7 @@ function applyAllGravity(rocket) {
     }
     
     // Return distance from Earth for reference
-    const dx = CELESTIAL_BODIES.EARTH.position.x - rocket.x;
-    const dy = CELESTIAL_BODIES.EARTH.position.y - rocket.y;
-    return Math.sqrt(dx * dx + dy * dy);
+    return calculateDistanceToBody(rocket.x, rocket.y, CELESTIAL_BODIES.EARTH);
 }
 
 /**
@@ -79,23 +101,16 @@ function calculateTrajectory(rocket, points) {
         
         // Apply gravity from all celestial bodies
         for (const body of SORTED_CELESTIAL_BODIES) {
-            const dx = body.position.x - simRocket.x;
-            const dy = body.position.y - simRocket.y;
-            const distanceSquared = dx * dx + dy * dy;
+            const gravity = calculateGravityForce(simRocket, body);
             
             // Check for collision with body
-            if (Math.sqrt(distanceSquared) < body.radius) {
+            if (gravity.distance < body.radius) {
                 return trajectoryPoints;
             }
             
-            // Calculate gravity force
-            const effectiveDistanceSquared = Math.max(distanceSquared, body.radius * body.radius * 0.1);
-            const gravityForce = GRAVITY_FACTOR * body.gravity * (body.radius * body.radius) / effectiveDistanceSquared;
-            
-            if (gravityForce > MIN_GRAVITY_THRESHOLD) {
-                const gravityAngle = Math.atan2(dy, dx);
-                simRocket.velocity.x += Math.cos(gravityAngle) * gravityForce * timeStep;
-                simRocket.velocity.y += Math.sin(gravityAngle) * gravityForce * timeStep;
+            if (gravity.force > MIN_GRAVITY_THRESHOLD) {
+                simRocket.velocity.x += gravity.components.x * timeStep;
+                simRocket.velocity.y += gravity.components.y * timeStep;
             }
         }
         
@@ -104,10 +119,7 @@ function calculateTrajectory(rocket, points) {
         simRocket.y += simRocket.velocity.y * timeStep;
         
         // Check if we've gone too far from Earth
-        const distanceFromEarth = Math.sqrt(
-            Math.pow(simRocket.x - CELESTIAL_BODIES.EARTH.position.x, 2) +
-            Math.pow(simRocket.y - CELESTIAL_BODIES.EARTH.position.y, 2)
-        );
+        const distanceFromEarth = calculateDistanceToBody(simRocket.x, simRocket.y, CELESTIAL_BODIES.EARTH);
         
         if (distanceFromEarth > maxDistance) {
             break;
@@ -150,9 +162,7 @@ function determineQuadrant(x, y) {
  */
 function trackOrbit(rocket, lastQuadrant, body = CELESTIAL_BODIES.EARTH, minDistanceFactor = 1.5) {
     // Calculate distance to the body
-    const dx = body.position.x - rocket.x;
-    const dy = body.position.y - rocket.y;
-    const distanceToBody = Math.sqrt(dx * dx + dy * dy);
+    const distanceToBody = calculateDistanceToBody(rocket.x, rocket.y, body);
     
     // Minimum distance to count as orbiting
     const minDistance = body.radius * minDistanceFactor;
@@ -177,4 +187,29 @@ function trackOrbit(rocket, lastQuadrant, body = CELESTIAL_BODIES.EARTH, minDist
         lastQuadrant,
         orbitCompleted: false
     };
+}
+
+/**
+ * Calculates the squared distance between two points
+ * @param {number} x1 - X coordinate of the first point
+ * @param {number} y1 - Y coordinate of the first point
+ * @param {number} x2 - X coordinate of the second point
+ * @param {number} y2 - Y coordinate of the second point
+ * @returns {number} Squared distance between the two points
+ */
+function calculateDistanceSquared(x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    return dx * dx + dy * dy;
+}
+
+/**
+ * Calculates the distance between a point and a celestial body
+ * @param {number} x - X coordinate of the point
+ * @param {number} y - Y coordinate of the point
+ * @param {Object} body - The celestial body
+ * @returns {number} Distance between the point and the celestial body
+ */
+function calculateDistanceToBody(x, y, body) {
+    return Math.sqrt(calculateDistanceSquared(x, y, body.position.x, body.position.y));
 }

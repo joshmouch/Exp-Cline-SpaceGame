@@ -1,21 +1,33 @@
-// Initial rocket state
-const initialRocketState = {
-    x: CELESTIAL_BODIES.EARTH.position.x,
-    y: CELESTIAL_BODIES.EARTH.position.y - CELESTIAL_BODIES.EARTH.radius - ROCKET_HEIGHT / 2,
-    angle: 0, // Pointing upward
-    velocity: { x: 0, y: 0 },
-    fuel: INITIAL_FUEL,
-    accelerating: false,
-    landed: true,
-    exploded: false
-};
+// Initial rocket state function to ensure we use the current Earth position
+/**
+ * Initial rocket state function to ensure we use the current Earth position
+ * @returns {Object} Initial rocket state
+ */
+function getInitialRocketState() {
+    const earth = CELESTIAL_BODIES.EARTH;
+    const angle = -Math.PI / 2; // Pointing straight up
+    const x = earth.position.x;
+    const y = earth.position.y - earth.radius + ROCKET_HEIGHT / 2; // On top of Earth
+    
+    return {
+        x: x,
+        y: y,
+        angle: angle, // Pointing straight up
+        velocity: { x: 0, y: 0 },
+        fuel: INITIAL_FUEL,
+        accelerating: false,
+        landed: true,
+        exploded: false,
+        onBody: CELESTIAL_BODIES.EARTH
+    };
+}
 
 /**
  * Creates a new rocket object
  * @returns {Object} A new rocket object
  */
 function createRocket() {
-    return { ...initialRocketState };
+    return getInitialRocketState();
 }
 
 /**
@@ -182,11 +194,20 @@ function drawExplosion(ctx, rocket) {
 /**
  * Accelerates the rocket
  * @param {Object} rocket - The rocket object
+ * @returns {boolean} Whether acceleration was applied
  */
 function accelerateRocket(rocket) {
     if (rocket.fuel > 0 && !rocket.exploded) {
-        rocket.velocity.x += Math.sin(rocket.angle) * ACCELERATION_RATE;
-        rocket.velocity.y -= Math.cos(rocket.angle) * ACCELERATION_RATE;
+        // If landed, launch from surface
+        if (rocket.landed) {
+            rocket.landed = false;
+            rocket.velocity.x = Math.sin(rocket.angle) * ACCELERATION_RATE * 2;
+            rocket.velocity.y = -Math.cos(rocket.angle) * ACCELERATION_RATE * 2;
+        } else {
+            // Normal flight acceleration
+            rocket.velocity.x += Math.sin(rocket.angle) * ACCELERATION_RATE;
+            rocket.velocity.y -= Math.cos(rocket.angle) * ACCELERATION_RATE;
+        }
         rocket.fuel = Math.max(0, rocket.fuel - FUEL_CONSUMPTION_RATE);
         return true;
     }
@@ -219,6 +240,76 @@ function launchRocket(rocket, body) {
 }
 
 /**
+ * Launches the rocket from a celestial body
+ * @param {Object} rocket - The rocket object
+ * @param {Object} body - The celestial body to launch from
+ */
+function launchFromBody(rocket, body) {
+    // Calculate launch position slightly above the body's surface
+    const launchDistance = body.radius + ROCKET_HEIGHT / 2;
+    rocket.x = body.position.x;
+    rocket.y = body.position.y - launchDistance;
+    rocket.angle = 0;
+    rocket.velocity = { x: 0, y: 0 };
+    rocket.fuel = INITIAL_FUEL;
+    rocket.landed = true;
+    rocket.exploded = false;
+}
+
+/**
+ * Updates the rocket's position and state
+ * @param {Object} rocket - The rocket object
+ */
+function updateRocketPosition(rocket) {
+    if (rocket.landed && !rocket.exploded) {
+        // Keep rocket on the surface of the body it's on
+        const body = rocket.onBody || CELESTIAL_BODIES.EARTH;
+        const angle = Math.atan2(rocket.y - body.position.y, rocket.x - body.position.x);
+        rocket.x = body.position.x + Math.cos(angle) * (body.radius + ROCKET_HEIGHT / 2);
+        rocket.y = body.position.y + Math.sin(angle) * (body.radius + ROCKET_HEIGHT / 2);
+        rocket.angle = angle - Math.PI / 2; // Point perpendicular to surface
+    } else {
+        // Normal flight movement
+        rocket.x += rocket.velocity.x;
+        rocket.y += rocket.velocity.y;
+    }
+}
+
+/**
+ * Checks if the rocket has collided with a celestial body
+ * @param {Object} rocket - The rocket object
+ * @param {Object} body - The celestial body to check collision with
+ * @returns {boolean} True if collision occurred
+ */
+function checkCollision(rocket, body) {
+    // Calculate distance from rocket center to body surface
+    const distanceToSurface = calculateDistanceToBody(rocket.x, rocket.y, body);
+    
+    // Check if rocket has hit the surface
+    if (distanceToSurface < body.radius + ROCKET_HEIGHT / 2) {
+        // Calculate impact velocity
+        const impactVelocity = Math.sqrt(
+            rocket.velocity.x * rocket.velocity.x + 
+            rocket.velocity.y * rocket.velocity.y
+        );
+        
+        // If impact velocity is too high, rocket explodes
+        if (impactVelocity > MAX_SAFE_LANDING_VELOCITY) {
+            rocket.exploded = true;
+            rocket.landed = false;
+        } else {
+            // Safe landing
+            rocket.landed = true;
+            rocket.velocity = { x: 0, y: 0 };
+        }
+        
+        return true;
+    }
+    
+    return false;
+}
+
+/**
  * Checks if the rocket can land safely on a celestial body
  * @param {Object} rocket - The rocket object
  * @param {Object} body - The celestial body to land on
@@ -228,7 +319,7 @@ function launchRocket(rocket, body) {
 function checkLanding(rocket, body, safeVelocity = SAFE_LANDING_VELOCITY) {
     const dx = body.position.x - rocket.x;
     const dy = body.position.y - rocket.y;
-    const distanceToSurface = Math.sqrt(dx * dx + dy * dy);
+    const distanceToSurface = calculateDistanceToBody(rocket.x, rocket.y, body);
     
     if (distanceToSurface < body.radius + ROCKET_HEIGHT / 2) {
         const speed = Math.sqrt(rocket.velocity.x * rocket.velocity.x + rocket.velocity.y * rocket.velocity.y);
@@ -245,9 +336,25 @@ function checkLanding(rocket, body, safeVelocity = SAFE_LANDING_VELOCITY) {
     return { success: false };
 }
 
+/**
+ * Calculates the distance from a point to a celestial body's surface
+ * @param {number} x - The x-coordinate of the point
+ * @param {number} y - The y-coordinate of the point
+ * @param {Object} body - The celestial body
+ * @returns {number} The distance from the point to the body's surface
+ */
+function calculateDistanceToBody(x, y, body) {
+    const dx = body.position.x - x;
+    const dy = body.position.y - y;
+    return Math.sqrt(dx * dx + dy * dy) - body.radius;
+}
+
 // Export functions to window
 window.drawRocket = drawRocket;
 window.createRocket = createRocket;
 window.accelerateRocket = accelerateRocket;
 window.launchRocket = launchRocket;
+window.launchFromBody = launchFromBody;
+window.updateRocketPosition = updateRocketPosition;
+window.checkCollision = checkCollision;
 window.checkLanding = checkLanding;

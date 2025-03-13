@@ -26,6 +26,9 @@ function renderScene(ctx, gameState) {
     // Set up camera transform
     setupCameraTransform(ctx, camera, canvas.width, canvas.height);
     
+    // Draw orbital paths
+    drawOrbitalPaths(ctx);
+    
     // Always draw sun and planets
     drawSun(ctx, gameTime);
     drawPlanets(ctx);
@@ -34,17 +37,11 @@ function renderScene(ctx, gameState) {
     // Draw Earth (clouds are now handled internally)
     drawEarth(ctx, gameTime, waterTwinkles);
     
-    // Draw orbit path
-    drawOrbitPath(ctx, orbitPath);
-    
     // Draw trajectory below rocket
     drawTrajectory(ctx, rocket, trajectoryPoints);
     
     // Draw rocket on top with game time for flame animation
     drawRocket(ctx, rocket, gameTime);
-    
-    // Draw orbit guide
-    drawOrbitGuide(ctx, rocket);
     
     // Reset camera transform for UI elements
     resetCameraTransform(ctx);
@@ -127,43 +124,6 @@ function drawTrajectory(ctx, rocket, trajectoryPoints) {
 }
 
 /**
- * Draws the rocket's orbit path
- * @param {CanvasRenderingContext2D} ctx - The canvas context
- * @param {Array} orbitPath - Array of orbit path points
- */
-function drawOrbitPath(ctx, orbitPath) {
-    if (orbitPath.length > 1) {
-        ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(orbitPath[0].x, orbitPath[0].y);
-        for (let i = 1; i < orbitPath.length; i++) {
-            ctx.lineTo(orbitPath[i].x, orbitPath[i].y);
-        }
-        ctx.stroke();
-    }
-}
-
-/**
- * Draws the orbit guide
- * @param {CanvasRenderingContext2D} ctx - The canvas context
- * @param {Object} rocket - The rocket object
- */
-function drawOrbitGuide(ctx, rocket) {
-    if (!rocket.landed && !rocket.exploded) {
-        // Draw a circular guide showing ideal orbital path
-        const idealOrbitRadius = CELESTIAL_BODIES.EARTH.radius * 3;
-        ctx.strokeStyle = 'rgba(100, 200, 255, 0.2)';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([5, 5]);
-        ctx.beginPath();
-        ctx.arc(0, 0, idealOrbitRadius, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.setLineDash([]);
-    }
-}
-
-/**
  * Draws the orbit count
  * @param {CanvasRenderingContext2D} ctx - The canvas context
  * @param {number} orbitCount - Number of completed orbits
@@ -175,8 +135,6 @@ function drawOrbitCount(ctx, orbitCount) {
         ctx.fillText(`Orbits: ${orbitCount}`, 20, 30);
     }
 }
-
-
 
 /**
  * Resizes the canvas to fill the window
