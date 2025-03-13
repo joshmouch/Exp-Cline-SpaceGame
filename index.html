@@ -10,11 +10,23 @@
     <div class="game-container">
         <canvas id="gameCanvas"></canvas>
         <div class="controls">
-            <button id="accelerateBtn">Accelerate</button>
-            <button id="leftBtn">Turn Left</button>
-            <button id="rightBtn">Turn Right</button>
-            <button id="zoomInBtn">Zoom In</button>
-            <button id="zoomOutBtn">Zoom Out</button>
+            <button id="accelerateBtn">Accelerate <span class="shortcut">[Space]</span></button>
+            <button id="leftBtn">Turn Left <span class="shortcut">[←]</span></button>
+            <button id="rightBtn">Turn Right <span class="shortcut">[→]</span></button>
+            <div id="zoomControls">
+                <button id="zoomInBtn">Zoom In <span class="shortcut">[+]</span></button>
+                <button id="zoomOutBtn">Zoom Out <span class="shortcut">[-]</span></button>
+            </div>
+            <div class="toggle-controls">
+                <label class="toggle">
+                    <input type="checkbox" id="centerShipToggle" checked>
+                    <span class="toggle-label">Center Ship <span class="shortcut">[C]</span></span>
+                </label>
+                <label class="toggle">
+                    <input type="checkbox" id="autoZoomToggle" checked>
+                    <span class="toggle-label">Auto-Zoom <span class="shortcut">[A]</span></span>
+                </label>
+            </div>
             <div class="stats">
                 <div>Fuel: <span id="fuelLevel">100</span>%</div>
                 <div>Altitude: <span id="altitude">0</span> km</div>

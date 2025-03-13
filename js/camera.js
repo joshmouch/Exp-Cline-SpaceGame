@@ -15,35 +15,59 @@ function createCamera() {
  * Updates the camera position to follow the rocket and keep Earth in view
  * @param {Object} camera - The camera object
  * @param {Object} rocket - The rocket object
+ * @param {Array} trajectoryPoints - Array of trajectory points
+ * @param {Object} controls - The controls object
  * @param {number} maxDistance - Maximum distance to consider for zoom
  * @param {number} minZoom - Minimum zoom level
  * @param {number} maxZoom - Maximum zoom level
  */
-function updateCamera(camera, rocket, maxDistance = 5000, minZoom = 0.1, maxZoom = 1.0) {
+function updateCamera(camera, rocket, trajectoryPoints, controls, maxDistance = 5000, minZoom = 0.02, maxZoom = 1.0) {
     // Calculate distance from Earth to rocket
     const distanceToEarthCenter = Math.sqrt(rocket.x * rocket.x + rocket.y * rocket.y);
     
-    // Always position camera to show both Earth and rocket
-    const earthToRocketVector = {
-        x: rocket.x,
-        y: rocket.y
-    };
+    if (controls.centerShip) {
+        // Center on the rocket
+        const earthToRocketVector = {
+            x: rocket.x,
+            y: rocket.y
+        };
+        
+        // Position camera between Earth and rocket, but closer to rocket
+        const cameraTargetX = earthToRocketVector.x * 0.7;
+        const cameraTargetY = earthToRocketVector.y * 0.7;
+        
+        // Smooth camera movement
+        camera.x += (cameraTargetX - camera.x) * 0.05;
+        camera.y += (cameraTargetY - camera.y) * 0.05;
+    } else if (trajectoryPoints.length > 0) {
+        // Center on the trajectory
+        let centerX = 0;
+        let centerY = 0;
+        
+        // Calculate the center of the trajectory
+        for (let i = 0; i < trajectoryPoints.length; i++) {
+            centerX += trajectoryPoints[i].x;
+            centerY += trajectoryPoints[i].y;
+        }
+        
+        centerX /= trajectoryPoints.length;
+        centerY /= trajectoryPoints.length;
+        
+        // Smooth camera movement
+        camera.x += (centerX - camera.x) * 0.05;
+        camera.y += (centerY - camera.y) * 0.05;
+    }
     
-    // Position camera between Earth and rocket, but closer to rocket
-    const cameraTargetX = earthToRocketVector.x * 0.7;
-    const cameraTargetY = earthToRocketVector.y * 0.7;
-    
-    // Smooth camera movement
-    camera.x += (cameraTargetX - camera.x) * 0.05;
-    camera.y += (cameraTargetY - camera.y) * 0.05;
-    
-    // Calculate ideal zoom based on distance
-    let distanceRatio = Math.min(distanceToEarthCenter / maxDistance, 1);
-    let idealZoom = maxZoom - (maxZoom - minZoom) * distanceRatio;
-    
-    // Ensure we can always see Earth
-    camera.targetZoom = Math.max(minZoom, Math.min(idealZoom, maxZoom));
-    camera.zoom += (camera.targetZoom - camera.zoom) * 0.05;
+    // Update zoom only if auto-zoom is enabled
+    if (controls.autoZoom) {
+        // Calculate ideal zoom based on distance
+        let distanceRatio = Math.min(distanceToEarthCenter / maxDistance, 1);
+        let idealZoom = maxZoom - (maxZoom - minZoom) * distanceRatio;
+        
+        // Ensure we can always see Earth
+        camera.targetZoom = Math.max(minZoom, Math.min(idealZoom, maxZoom));
+        camera.zoom += (camera.targetZoom - camera.zoom) * 0.05;
+    }
 }
 
 /**

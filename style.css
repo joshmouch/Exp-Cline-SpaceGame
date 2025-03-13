@@ -39,6 +39,35 @@ canvas {
     justify-content: center;
 }
 
+#zoomControls {
+    display: flex;
+    gap: 10px;
+}
+
+.toggle-controls {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle input {
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.toggle-label {
+    font-size: 14px;
+}
+
 button {
     padding: 10px 15px;
     background-color: #4a5568;

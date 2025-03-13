@@ -1,11 +1,13 @@
-/**
+   /**
  * Creates a controls object
  * @returns {Object} A new controls object
  */
 function createControls() {
     return {
         keysPressed: {},
-        accelerateButtonActive: false
+        accelerateButtonActive: false,
+        centerShip: true,
+        autoZoom: true
     };
 }
 
@@ -19,6 +21,18 @@ function setupEventListeners(controls, camera, toggleAcceleration) {
     // Keyboard controls
     window.addEventListener('keydown', e => {
         controls.keysPressed[e.key] = true;
+        
+        // Handle toggle shortcuts
+        if (e.key === 'c' || e.key === 'C') {
+            controls.centerShip = !controls.centerShip;
+            document.getElementById('centerShipToggle').checked = controls.centerShip;
+        }
+        
+        if (e.key === 'a' || e.key === 'A') {
+            controls.autoZoom = !controls.autoZoom;
+            document.getElementById('autoZoomToggle').checked = controls.autoZoom;
+            updateZoomControlsVisibility(controls.autoZoom);
+        }
     });
     
     window.addEventListener('keyup', e => {
@@ -61,15 +75,37 @@ function setupEventListeners(controls, camera, toggleAcceleration) {
     document.getElementById('zoomOutBtn').addEventListener('click', () => {
         zoomOut(camera);
     });
+    
+    // Toggle controls
+    document.getElementById('centerShipToggle').addEventListener('change', (e) => {
+        controls.centerShip = e.target.checked;
+    });
+    
+    document.getElementById('autoZoomToggle').addEventListener('change', (e) => {
+        controls.autoZoom = e.target.checked;
+        updateZoomControlsVisibility(controls.autoZoom);
+    });
+    
+    // Initialize zoom controls visibility
+    updateZoomControlsVisibility(controls.autoZoom);
 }
 
 /**
- * Handles user input for rocket control
+ * Updates the visibility of zoom controls based on auto-zoom setting
+ * @param {boolean} autoZoom - Whether auto-zoom is enabled
+ */
+function updateZoomControlsVisibility(autoZoom) {
+    const zoomControls = document.getElementById('zoomControls');
+    zoomControls.style.display = autoZoom ? 'none' : 'flex';
+}
+
+/**
+ * Handles user input for rocket control and camera
  * @param {Object} controls - The controls object
  * @param {Object} rocket - The rocket object
- * @param {Function} toggleAcceleration - Function to toggle rocket acceleration
+ * @param {Object} camera - The camera object
  */
-function handleInput(controls, rocket) {
+function handleInput(controls, rocket, camera) {
     // Handle rotation
     if (controls.keysPressed['ArrowLeft']) {
         rocket.angle -= ROTATION_RATE;
@@ -86,6 +122,21 @@ function handleInput(controls, rocket) {
     } else if (controls.keysPressed[' '] === false && rocket.accelerating) {
         rocket.accelerating = false;
         document.getElementById('accelerateBtn').classList.remove('active');
+    }
+    
+    // Handle zoom with + and - keys (only when auto-zoom is disabled)
+    if (!controls.autoZoom) {
+        if (controls.keysPressed['+'] || controls.keysPressed['=']) {
+            zoomIn(camera);
+            controls.keysPressed['+'] = false;
+            controls.keysPressed['='] = false;
+        }
+        
+        if (controls.keysPressed['-'] || controls.keysPressed['_']) {
+            zoomOut(camera);
+            controls.keysPressed['-'] = false;
+            controls.keysPressed['_'] = false;
+        }
     }
 }
 

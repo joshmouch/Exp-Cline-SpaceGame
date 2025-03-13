@@ -62,7 +62,7 @@ function gameLoop(timestamp) {
  */
 function update() {
     // Handle user input
-    handleInput(gameState.controls, gameState.rocket);
+    handleInput(gameState.controls, gameState.rocket, gameState.camera);
     
     // Update rocket physics
     if (!gameState.rocket.landed && !gameState.rocket.exploded) {
@@ -148,7 +148,7 @@ function update() {
     }
     
     // Update camera
-    updateCamera(gameState.camera, gameState.rocket);
+    updateCamera(gameState.camera, gameState.rocket, gameState.trajectoryPoints, gameState.controls);
     
     // Update clouds
     updateClouds(gameState.clouds);
