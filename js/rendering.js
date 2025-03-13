@@ -31,8 +31,8 @@ function renderScene(ctx, gameState) {
     drawPlanets(ctx);
     drawMoon(ctx);
     
-    // Draw Earth
-    drawEarth(ctx, gameTime, waterTwinkles, clouds);
+    // Draw Earth (clouds are now handled internally)
+    drawEarth(ctx, gameTime, waterTwinkles);
     
     // Draw orbit path
     drawOrbitPath(ctx, orbitPath);

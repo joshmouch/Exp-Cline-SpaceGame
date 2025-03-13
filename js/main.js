@@ -41,7 +41,6 @@ function init() {
     
     // Generate visual elements
     gameState.stars = createStars(STAR_COUNT);
-    gameState.clouds = createClouds(20); // More clouds for better coverage
     gameState.waterTwinkles = createWaterTwinkles(30);
     
     // Set up event listeners
@@ -197,8 +196,7 @@ function update() {
     // Update camera
     updateCamera(gameState.camera, gameState.rocket, gameState.trajectoryPoints, gameState.controls);
     
-    // Update clouds with game time for animations
-    updateClouds(gameState.clouds, gameState.gameTime);
+    // No need to update clouds here anymore - handled in drawEarth
     
     // Only recalculate trajectory when rocket state changes
     if (gameState.rocket.accelerating || gameState.rocket.velocity.x !== 0 || gameState.rocket.velocity.y !== 0) {

@@ -312,6 +312,7 @@ function drawMercurySurface(ctx, x, y, radius) {
     });
 }
 
+
 /**
  * Draws Venus's swirling cloud patterns
  * @param {CanvasRenderingContext2D} ctx - The canvas context
@@ -320,7 +321,7 @@ function drawMercurySurface(ctx, x, y, radius) {
  * @param {number} radius - Radius of the planet
  */
 function drawVenusSurface(ctx, x, y, radius) {
-    // Add swirling cloud patterns
+    // Base surface gradient
     const gradient = ctx.createRadialGradient(
         x - radius * 0.3, y - radius * 0.3, 0,
         x, y, radius
@@ -333,6 +334,15 @@ function drawVenusSurface(ctx, x, y, radius) {
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fill();
+    
+    // Venus has thick yellowish clouds - use the global VENUS_CLOUDS from clouds.js
+    if (typeof VENUS_CLOUDS !== 'undefined') {
+        // Update Venus clouds
+        updateClouds(VENUS_CLOUDS, Date.now() / 1000);
+        
+        // Draw Venus clouds
+        drawClouds(ctx, { position: { x, y }, radius }, VENUS_CLOUDS);
+    }
 }
 
 /**
