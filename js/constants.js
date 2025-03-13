@@ -5,7 +5,7 @@ const INITIAL_FUEL = 200;
 const FUEL_CONSUMPTION_RATE = 0.1;
 const ACCELERATION_RATE = 0.01; // Increased from 0.01 to make movement more noticeable
 const ROTATION_RATE = 0.05;
-const TRAJECTORY_POINTS = 200;
+const TRAJECTORY_POINTS = 4000; // Reduced for more stable trajectory prediction
 const STAR_COUNT = 200;
 const SAFE_LANDING_VELOCITY = 1.0;
 
@@ -15,7 +15,7 @@ const MAX_ZOOM = 2.0;
 
 // Physics constants
 const GRAVITY_FACTOR = 0.01;
-const MIN_GRAVITY_THRESHOLD = 0.0001; // Minimum gravity force to consider
+const MIN_GRAVITY_THRESHOLD = 0.001; // Increased minimum threshold to reduce jitter from tiny forces
 
 // Celestial bodies
 const CELESTIAL_BODIES = {

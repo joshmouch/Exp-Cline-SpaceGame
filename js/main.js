@@ -200,13 +200,9 @@ function update() {
     // Update clouds
     updateClouds(gameState.clouds);
     
-    // Calculate trajectory with more points for better visibility
-    gameState.trajectoryPoints = calculateTrajectory(gameState.rocket, TRAJECTORY_POINTS);
-    
-    // Debug: Log trajectory points count
-    if (gameState.trajectoryPoints.length > 0 && gameState.gameTime % 60 < 1) {
-        console.log(`Trajectory points: ${gameState.trajectoryPoints.length}`);
-        console.log(`Last trajectory point: x=${gameState.trajectoryPoints[gameState.trajectoryPoints.length-1].x}, y=${gameState.trajectoryPoints[gameState.trajectoryPoints.length-1].y}`);
+    // Only recalculate trajectory when rocket state changes
+    if (gameState.rocket.accelerating || gameState.rocket.velocity.x !== 0 || gameState.rocket.velocity.y !== 0) {
+        gameState.trajectoryPoints = calculateTrajectory(gameState.rocket, TRAJECTORY_POINTS);
     }
     
     // Update UI

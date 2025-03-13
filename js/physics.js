@@ -63,93 +63,55 @@ function calculateTrajectory(rocket, points) {
         }
     };
     
-    // Use 3x more points as requested
-    const extendedPoints = points * 3;
+    // Use fixed parameters for consistent trajectory prediction
+    const timeStep = 1.0;
+    const maxPoints = points;
+    const maxDistance = CELESTIAL_BODIES.EARTH.radius * 20; // Reduced to keep trajectory more focused
     
-    // Larger time step to stretch out the trajectory
-    const baseTimeStep = 2.0;
-    
-    // Adaptive time step based on velocity
-    const speed = Math.sqrt(simRocket.velocity.x * simRocket.velocity.x + 
-                           simRocket.velocity.y * simRocket.velocity.y);
-    
-    // Adjust time step based on speed - faster rockets need larger steps to stretch trajectory
-    const adaptiveTimeStep = Math.min(5.0, Math.max(1.0, baseTimeStep * (1 + speed / 20)));
-    
-    // Minimum number of points to calculate
-    const minPoints = Math.min(30, extendedPoints);
-    
-    // Maximum distance to simulate
-    const maxDistance = CELESTIAL_BODIES.EARTH.radius * 50;
-    
-    // Skip factor to spread out points (only store every nth point)
-    const skipFactor = 2;
-    let skipCounter = 0;
-    
-    // Simulate multiple steps
-    for (let i = 0; i < extendedPoints * skipFactor; i++) {
-        // Apply gravity from all celestial bodies, sorted by strongest gravity first
+    // Simulate steps
+    for (let i = 0; i < maxPoints; i++) {
+        // Store point with opacity information
+        trajectoryPoints.push({ 
+            x: simRocket.x, 
+            y: simRocket.y,
+            opacity: 1 - (i / maxPoints) // Opacity decreases with distance
+        });
+        
+        // Apply gravity from all celestial bodies
         for (const body of SORTED_CELESTIAL_BODIES) {
-            // Calculate distance to body
             const dx = body.position.x - simRocket.x;
             const dy = body.position.y - simRocket.y;
             const distanceSquared = dx * dx + dy * dy;
             
-            // Check for collision with any body
+            // Check for collision with body
             if (Math.sqrt(distanceSquared) < body.radius) {
-                break;
+                return trajectoryPoints;
             }
             
-            // Calculate gravity force using inverse square law
-            // Use a minimum distance to prevent extreme forces when very close
+            // Calculate gravity force
             const effectiveDistanceSquared = Math.max(distanceSquared, body.radius * body.radius * 0.1);
             const gravityForce = GRAVITY_FACTOR * body.gravity * (body.radius * body.radius) / effectiveDistanceSquared;
             
-            // Only apply gravity if it's above the minimum threshold
-            if (gravityForce * adaptiveTimeStep > MIN_GRAVITY_THRESHOLD) {
+            if (gravityForce > MIN_GRAVITY_THRESHOLD) {
                 const gravityAngle = Math.atan2(dy, dx);
-                
-                // Apply gravity force to velocity
-                simRocket.velocity.x += Math.cos(gravityAngle) * gravityForce * adaptiveTimeStep;
-                simRocket.velocity.y += Math.sin(gravityAngle) * gravityForce * adaptiveTimeStep;
+                simRocket.velocity.x += Math.cos(gravityAngle) * gravityForce * timeStep;
+                simRocket.velocity.y += Math.sin(gravityAngle) * gravityForce * timeStep;
             }
         }
         
-        // Update position based on velocity
-        simRocket.x += simRocket.velocity.x * adaptiveTimeStep;
-        simRocket.y += simRocket.velocity.y * adaptiveTimeStep;
+        // Update position
+        simRocket.x += simRocket.velocity.x * timeStep;
+        simRocket.y += simRocket.velocity.y * timeStep;
         
-        // Only store every nth point to spread them out
-        skipCounter++;
-        if (skipCounter >= skipFactor) {
-            skipCounter = 0;
-            
-            // Store point with opacity information (for dimming effect)
-            trajectoryPoints.push({ 
-                x: simRocket.x, 
-                y: simRocket.y,
-                opacity: 1 - (trajectoryPoints.length / extendedPoints) // Opacity decreases with distance
-            });
-        }
-        
-        // Calculate distance from Earth to check if we've gone too far
+        // Check if we've gone too far from Earth
         const distanceFromEarth = Math.sqrt(
-            (simRocket.x - CELESTIAL_BODIES.EARTH.position.x) * (simRocket.x - CELESTIAL_BODIES.EARTH.position.x) +
-            (simRocket.y - CELESTIAL_BODIES.EARTH.position.y) * (simRocket.y - CELESTIAL_BODIES.EARTH.position.y)
+            Math.pow(simRocket.x - CELESTIAL_BODIES.EARTH.position.x, 2) +
+            Math.pow(simRocket.y - CELESTIAL_BODIES.EARTH.position.y, 2)
         );
         
-        // Only break if we've calculated at least the minimum number of points
-        // and we've gone too far from Earth
-        if (trajectoryPoints.length >= minPoints && distanceFromEarth > maxDistance) {
+        if (distanceFromEarth > maxDistance) {
             break;
         }
-    }
-    
-    // Debug log
-    console.log(`Calculated ${trajectoryPoints.length} trajectory points`);
-    if (trajectoryPoints.length > 0) {
-        console.log(`First point: (${trajectoryPoints[0].x.toFixed(2)}, ${trajectoryPoints[0].y.toFixed(2)})`);
-        console.log(`Last point: (${trajectoryPoints[trajectoryPoints.length-1].x.toFixed(2)}, ${trajectoryPoints[trajectoryPoints.length-1].y.toFixed(2)})`);
     }
     
     return trajectoryPoints;
