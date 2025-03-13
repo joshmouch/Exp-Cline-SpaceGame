@@ -37,7 +37,7 @@ const CELESTIAL_BODIES = {
     SUN: {
         name: 'sun',
         radius: 200,
-        gravity: 10.0,  // Strong but not as strong as Earth at close range
+        gravity: 2.0,  // Strong but not as strong as Earth at close range
         position: { x: -1500, y: -1500 },
         color: '#f39c12'
     },
@@ -65,14 +65,14 @@ const CELESTIAL_BODIES = {
     JUPITER: {
         name: 'jupiter',
         radius: 150,
-        gravity: 5.0,
+        gravity: 1.5,
         position: { x: 1500, y: 0 },
         color: '#f1c40f'
     },
     SATURN: {
         name: 'saturn',
         radius: 120,
-        gravity: 2.0,
+        gravity: 1.5,
         position: { x: 0, y: 1800 },
         color: '#d35400'
     }

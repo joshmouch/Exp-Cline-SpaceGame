@@ -28,24 +28,15 @@ function updateCamera(camera, rocket, trajectoryPoints, controls) {
             // Focus on the rocket
             targetX = rocket.x;
             targetY = rocket.y;
-        } else if (controls.focus === 'earth') {
-            // Focus on Earth (which is at 0,0)
-            targetX = 0;
-            targetY = 0;
-        } else if (controls.focus === 'moon') {
-            // Focus on Moon
-            targetX = MOON_POSITION.x;
-            targetY = MOON_POSITION.y;
-        } else if (controls.focus === 'sun') {
-            // Focus on Sun
-            targetX = SUN_POSITION.x;
-            targetY = SUN_POSITION.y;
         } else {
-            // Handle other planets
-            const planetPos = PLANET_POSITIONS[controls.focus];
-            if (planetPos) {
-                targetX = planetPos.x;
-                targetY = planetPos.y;
+            // Focus on celestial body
+            const body = CELESTIAL_BODIES[controls.focus.toUpperCase()];
+            if (body) {
+                targetX = body.position.x;
+                targetY = body.position.y;
+            } else {
+                console.warn('Unknown focus target:', controls.focus);
+                return; // Don't update camera if target is unknown
             }
         }
         

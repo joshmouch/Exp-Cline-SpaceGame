@@ -6,9 +6,10 @@ function createControls() {
     return {
         keysPressed: {},
         accelerateButtonActive: false,
-        focus: 'ship',
+        focus: 'ship', // Start with ship focus
         isDragging: false,
-        lastMousePos: { x: 0, y: 0 }
+        lastMousePos: { x: 0, y: 0 },
+        lastFocusChange: 0 // Track last focus change time
     };
 }
 
@@ -24,7 +25,10 @@ function setupEventListeners(controls, camera, accelerateCallback, resetGame) {
     
     // Keyboard controls
     window.addEventListener('keydown', e => {
-        controls.keysPressed[e.key] = true;
+        // Only set key state if it wasn't already pressed (prevents key repeat)
+        if (!controls.keysPressed[e.key]) {
+            controls.keysPressed[e.key] = true;
+        }
         
         // Handle reset shortcut
         if (e.key === 'r' || e.key === 'R') {
@@ -150,6 +154,8 @@ function cycleFocus(controls) {
  * @param {Object} camera - The camera object
  */
 function handleInput(controls, rocket, camera) {
+    const currentTime = Date.now();
+    
     // Handle rotation with A and D keys - only if not landed
     if (!rocket.landed && !rocket.exploded) {
         if (controls.keysPressed['a'] || controls.keysPressed['A']) {
@@ -173,10 +179,10 @@ function handleInput(controls, rocket, camera) {
     }
     
     // Handle focus cycling with F key
-    if (controls.keysPressed['f'] || controls.keysPressed['F']) {
+    if ((controls.keysPressed['f'] || controls.keysPressed['F']) && 
+        currentTime - controls.lastFocusChange > 200) { // 200ms delay between focus changes
         cycleFocus(controls);
-        controls.keysPressed['f'] = false;
-        controls.keysPressed['F'] = false;
+        controls.lastFocusChange = currentTime;
     }
     
     // Handle zoom with + and - keys
