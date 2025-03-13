@@ -1,0 +1,234 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #000;
+    color: #fff;
+    overflow: hidden;
+}
+
+.game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+}
+
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.ui-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+}
+
+.fuel-container, .velocity-container, .altitude-container {
+    margin-bottom: 15px;
+}
+
+.fuel-label, .velocity-label, .altitude-label {
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 5px;
+}
+
+.fuel-bar-container {
+    width: 150px;
+    height: 10px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.fuel-bar {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #ff4d4d, #ffcc00);
+    transition: width 0.3s;
+}
+
+#velocity, #altitude {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.zoom-btn, .thrust-btn {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.zoom-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.thrust-btn {
+    background-color: rgba(255, 0, 0, 0.5);
+    padding: 10px 20px;
+}
+
+.zoom-btn:hover, .thrust-btn:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.thrust-btn:hover {
+    background-color: rgba(255, 0, 0, 0.7);
+}
+
+.hidden {
+    display: none;
+}
+
+/* Start Screen */
+.start-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.start-content {
+    background-color: rgba(30, 30, 30, 0.9);
+    padding: 40px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    max-width: 600px;
+}
+
+.start-content h1 {
+    font-size: 36px;
+    margin-bottom: 20px;
+    color: #4d79ff;
+    text-shadow: 0 0 10px rgba(77, 121, 255, 0.5);
+}
+
+.start-content p {
+    font-size: 18px;
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+
+.instructions {
+    text-align: left;
+    margin-bottom: 30px;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.instructions h3 {
+    margin-bottom: 10px;
+    color: #ffcc00;
+}
+
+.instructions ul {
+    list-style-type: none;
+    padding-left: 10px;
+}
+
+.instructions li {
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+.start-btn {
+    background-color: #4d79ff;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.2s;
+    font-weight: bold;
+}
+
+.start-btn:hover {
+    background-color: #3366ff;
+    transform: scale(1.05);
+}
+
+/* Game Over Screen */
+.game-over {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.game-over-content {
+    background-color: rgba(30, 30, 30, 0.9);
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+#gameOverTitle {
+    font-size: 28px;
+    margin-bottom: 15px;
+    color: #ff4d4d;
+}
+
+#gameOverMessage {
+    font-size: 18px;
+    margin-bottom: 25px;
+}
+
+#restartButton {
+    background-color: #4d79ff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s;
+}
+
+#restartButton:hover {
+    background-color: #3366ff;
+}

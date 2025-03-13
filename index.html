@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #000;
+            color: #fff;
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000;
+        }
+        
+        .ui-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+        }
+        
+        .fuel-container, .velocity-container, .altitude-container {
+            margin-bottom: 15px;
+        }
+        
+        .fuel-label, .velocity-label, .altitude-label {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+        
+        .fuel-bar-container {
+            width: 150px;
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .fuel-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #ff4d4d, #ffcc00);
+            transition: width 0.3s;
+        }
+        
+        #velocity, #altitude {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .zoom-btn, .thrust-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .thrust-btn {
+            background-color: rgba(255, 0, 0, 0.5);
+            padding: 10px 20px;
+        }
+        
+        .zoom-btn:hover, .thrust-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .thrust-btn:hover {
+            background-color: rgba(255, 0, 0, 0.7);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .start-content {
+            background-color: rgba(30, 30, 30, 0.9);
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 600px;
+        }
+        
+        .start-content h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: #4d79ff;
+            text-shadow: 0 0 10px rgba(77, 121, 255, 0.5);
+        }
+        
+        .start-content p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        
+        .instructions {
+            text-align: left;
+            margin-bottom: 30px;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 5px;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: #ffcc00;
+        }
+        
+        .instructions ul {
+            list-style-type: none;
+            padding-left: 10px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .start-btn {
+            background-color: #4d79ff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.2s;
+            font-weight: bold;
+        }
+        
+        .start-btn:hover {
+            background-color: #3366ff;
+            transform: scale(1.05);
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .game-over-content {
+            background-color: rgba(30, 30, 30, 0.9);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        #gameOverTitle {
+            font-size: 28px;
+            margin-bottom: 15px;
+            color: #ff4d4d;
+        }
+        
+        #gameOverMessage {
+            font-size: 18px;
+            margin-bottom: 25px;
+        }
+        
+        #restartButton {
+            background-color: #4d79ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        
+        #restartButton:hover {
+            background-color: #3366ff;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    
+    <div class="ui-container hidden" id="gameUI">
+        <div class="fuel-container">
+            <div class="fuel-label">FUEL</div>
+            <div class="fuel-bar-container">
+                <div id="fuelBar" class="fuel-bar"></div>
+            </div>
+        </div>
+        <div class="velocity-container">
+            <div class="velocity-label">VELOCITY</div>
+            <div id="velocity">0 m/s</div>
+        </div>
+        <div class="altitude-container">
+            <div class="altitude-label">ALTITUDE</div>
+            <div id="altitude">0 km</div>
+        </div>
+        <div class="controls">
+            <button id="zoomIn" class="zoom-btn">+</button>
+            <button id="zoomOut" class="zoom-btn">-</button>
+            <button id="thrustButton" class="thrust-btn">THRUST</button>
+        </div>
+    </div>
+    
+    <!-- Start Screen -->
+    <div class="start-screen" id="startScreen">
+        <div class="start-content">
+            <h1>COSMIC EXPLORER</h1>
+            <p>Navigate your spacecraft through the solar system. Use thrusters to achieve orbit and visit other planets!</p>
+            
+            <div class="instructions">
+                <h3>CONTROLS:</h3>
+                <ul>
+                    <li>↑ or W: Apply thrust</li>
+                    <li>← or A: Rotate left</li>
+                    <li>→ or D: Rotate right</li>
+                    <li>L: Toggle landing gear</li>
+                    <li>+ / -: Zoom in/out</li>
+                </ul>
+            </div>
+            
+            <button id="startButton" class="start-btn">START MISSION</button>
+        </div>
+    </div>
+    
+    <!-- Game Over Screen -->
+    <div class="game-over hidden" id="gameOverScreen">
+        <div class="game-over-content">
+            <h2 id="gameOverTitle">MISSION FAILED</h2>
+            <p id="gameOverMessage">Your spacecraft crashed!</p>
+            <button id="restartButton">RESTART MISSION</button>
+        </div>
+    </div>
+    
+    <script>
+        // Vector class for 2D vector operations
+        class Vector {
+            constructor(x = 0, y = 0) {
+                this.x = x;
+                this.y = y;
+            }
+            
+            // Create a copy of this vector
+            clone() {
+                return new Vector(this.x, this.y);
+            }
+            
+            add(v) {
+                return new Vector(this.x + v.x, this.y + v.y);
+            }
+            
+            subtract(v) {
+                return new Vector(this.x - v.x, this.y - v.y);
+            }
+            
+            multiply(scalar) {
+                return new Vector(this.x * scalar, this.y * scalar);
+            }
+            
+            magnitude() {
+                return Math.sqrt(this.x * this.x + this.y * this.y);
+            }
+            
+            normalize() {
+                const mag = this.magnitude();
+                if (mag === 0) return new Vector();
+                return new Vector(this.x / mag, this.y / mag);
+            }
+            
+            static fromAngle(angle, magnitude = 1) {
+                return new Vector(
+                    magnitude * Math.cos(angle),
+                    magnitude * Math.sin(angle)
+                );
+            }
+        }
+        
+        // Simple game implementation
+        class SimpleGame {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.resizeCanvas();
+                
+                // Game state
+                this.gameOver = false;
+                this.lastTime = 0;
+                
+                // Earth properties
+                this.earth = {
+                    position: new Vector(this.canvas.width / 2, this.canvas.height / 2),
+                    radius: 50,
+                    color: '#1e88e5'
+                };
+                
+                // Spacecraft properties
+                this.spacecraft = {
+                    position: new Vector(
+                        this.earth.position.x,
+                        this.earth.position.y - this.earth.radius - 30
+                    ),
+                    velocity: new Vector(0, 0),
+                    angle: -Math.PI / 2, // Point upward
+                    size: 15,
+                    thrusting: false,
+                    rotatingLeft: false,
+                    rotatingRight: false,
+                    fuel: 1000,
+                    maxFuel: 1000,
+                    thrustPower: 0.2,
+                    rotationSpeed: 0.05
+                };
+                
+                // Camera properties
+                this.camera = {
+                    position: this.spacecraft.position,
+                    zoom: 1
+                };
+                
+                // Stars background
+                this.stars = this.generateStars(200);
+                
+                // Set up event listeners
+                this.setupEventListeners();
+                
+                // Start game loop
+                window.requestAnimationFrame(this.gameLoop.bind(this));
+            }
+            
+            resizeCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+            
+            generateStars(count) {
+                const stars = [];
+                for (let i = 0; i < count; i++) {
+                    stars.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        size: Math.random() * 2 + 0.5,
+                        brightness: Math.random() * 0.5 + 0.5
+                    });
+                }
+                return stars;
+            }
+            
+            setupEventListeners() {
+                // Keyboard controls
+                document.addEventListener('keydown', (e) => {
+                    if (this.gameOver) return;
+                    
+                    switch (e.key) {
+                        case 'ArrowUp':
+                        case 'w':
+                            this.spacecraft.thrusting = true;
+                            break;
+                        case 'ArrowLeft':
+                        case 'a':
+                            this.spacecraft.rotatingLeft = true;
+                            break;
+                        case 'ArrowRight':
+                        case 'd':
+                            this.spacecraft.rotatingRight = true;
+                            break;
+                        case '+':
+                            this.camera.zoom = Math.min(2, this.camera.zoom * 1.1);
+                            break;
+                        case '-':
+                            this.camera.zoom = Math.max(0.5, this.camera.zoom / 1.1);
+                            break;
+                    }
+                });
+                
+                document.addEventListener('keyup', (e) => {
+                    if (this.gameOver) return;
+                    
+                    switch (e.key) {
+                        case 'ArrowUp':
+                        case 'w':
+                            this.spacecraft.thrusting = false;
+                            break;
+                        case 'ArrowLeft':
+                        case 'a':
+                            this.spacecraft.rotatingLeft = false;
+                            break;
+                        case 'ArrowRight':
+                        case 'd':
+                            this.spacecraft.rotatingRight = false;
+                            break;
+                    }
+                });
+                
+                // Button controls
+                const thrustButton = document.getElementById('thrustButton');
+                if (thrustButton) {
+                    thrustButton.addEventListener('mousedown', () => {
+                        if (!this.gameOver) this.spacecraft.thrusting = true;
+                    });
+                    thrustButton.addEventListener('mouseup', () => {
+                        if (!this.gameOver) this.spacecraft.thrusting = false;
+                    });
+                    thrustButton.addEventListener('touchstart', () => {
+                        if (!this.gameOver) this.spacecraft.thrusting = true;
+                    });
+                    thrustButton.addEventListener('touchend', () => {
+                        if (!this.gameOver) this.spacecraft.thrusting = false;
+                    });
+                }
+                
+                const zoomInButton = document.getElementById('zoomIn');
+                if (zoomInButton) {
+                    zoomInButton.addEventListener('click', () => {
+                        if (!this.gameOver) this.camera.zoom = Math.min(2, this.camera.zoom * 1.1);
+                    });
+                }
+                
+                const zoomOutButton = document.getElementById('zoomOut');
+                if (zoomOutButton) {
+                    zoomOutButton.addEventListener('click', () => {
+                        if (!this.gameOver) this.camera.zoom = Math.max(0.5, this.camera.zoom / 1.1);
+                    });
+                }
+                
+                // Restart button
+                const restartButton = document.getElementById('restartButton');
+                if (restartButton) {
+                    restartButton.addEventListener('click', () => {
+                        this.restartGame();
+                    });
+                }
+                
+                // Window resize
+                window.addEventListener('resize', () => {
+                    this.resizeCanvas();
+                });
+            }
+            
+            gameLoop(timestamp) {
+                // Calculate delta time
+                const deltaTime = (timestamp - this.lastTime) / 1000; // Convert to seconds
+                this.lastTime = timestamp;
+                
+                // Update game state
+                if (!this.gameOver) {
+                    this.update(deltaTime);
+                }
+                
+                // Render game
+                this.render();
+                
+                // Continue game loop
+                window.requestAnimationFrame(this.gameLoop.bind(this));
+            }
+            
+            update(deltaTime) {
+                // Cap delta time to prevent large jumps
+                const dt = Math.min(deltaTime, 0.1);
+                
+                // Handle rotation
+                if (this.spacecraft.rotatingLeft) {
+                    this.spacecraft.angle -= this.spacecraft.rotationSpeed * dt;
+                }
+                if (this.spacecraft.rotatingRight) {
+                    this.spacecraft.angle += this.spacecraft.rotationSpeed * dt;
+                }
+                
+                // Apply thrust if thrusting and has fuel
+                if (this.spacecraft.thrusting && this.spacecraft.fuel > 0) {
+                    // Calculate thrust vector based on spacecraft angle
+                    const thrustVector = Vector.fromAngle(
+                        this.spacecraft.angle,
+                        this.spacecraft.thrustPower * dt
+                    );
+                    
+                    // Apply thrust to velocity
+                    this.spacecraft.velocity = this.spacecraft.velocity.add(thrustVector);
+                    
+                    // Consume fuel
+                    this.spacecraft.fuel -= dt * 50;
+                    if (this.spacecraft.fuel < 0) this.spacecraft.fuel = 0;
+                    
+                    // Update fuel bar
+                    const fuelBar = document.getElementById('fuelBar');
+                    if (fuelBar) {
+                        fuelBar.style.width = `${(this.spacecraft.fuel / this.spacecraft.maxFuel) * 100}%`;
+                    }
+                }
+                
+                // Apply gravity from Earth
+                const toEarth = this.earth.position.subtract(this.spacecraft.position);
+                const distance = toEarth.magnitude();
+                
+                // Check for collision with Earth
+                if (distance < this.earth.radius + this.spacecraft.size / 2) {
+                    // Check landing conditions
+                    const speed = this.spacecraft.velocity.magnitude();
+                    
+                    if (speed < 10) {
+                        // Successful landing
+                        this.spacecraft.velocity = new Vector();
+                        this.spacecraft.position = this.earth.position.add(
+                            toEarth.normalize().multiply(-(this.earth.radius + this.spacecraft.size / 2))
+                        );
+                    } else {
+                        // Crash
+                        this.gameOver = true;
+                        document.getElementById('gameOverScreen').classList.remove('hidden');
+                    }
+                } else {
+                    // Apply gravitational force
+                    const gravity = 9.8; // Simplified gravity
+                    const forceMagnitude = gravity * (1 / (distance * distance)) * dt * 5000;
+                    const gravityForce = toEarth.normalize().multiply(forceMagnitude);
+                    
+                    this.spacecraft.velocity = this.spacecraft.velocity.add(gravityForce);
+                    
+                    // Update position
+                    this.spacecraft.position = this.spacecraft.position.add(
+                        this.spacecraft.velocity.multiply(dt)
+                    );
+                }
+                
+                // Update camera to follow spacecraft
+                this.camera.position = this.spacecraft.position;
+                
+                // Update UI
+                const velocityDisplay = document.getElementById('velocity');
+                if (velocityDisplay) {
+                    const speed = Math.round(this.spacecraft.velocity.magnitude() * 10) / 10;
+                    velocityDisplay.textContent = `${speed} m/s`;
+                }
+                
+                const altitudeDisplay = document.getElementById('altitude');
+                if (altitudeDisplay) {
+                    const altitude = Math.round((distance - this.earth.radius) * 10) / 10;
+                    altitudeDisplay.textContent = `${altitude} km`;
+                }
+            }
+            
+            render() {
+                // Clear canvas
+                this.ctx.fillStyle = '#000000';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Calculate screen center
+                const screenCenterX = this.canvas.width / 2;
+                const screenCenterY = this.canvas.height / 2;
+                
+                // Render stars
+                this.ctx.fillStyle = '#ffffff';
+                for (const star of this.stars) {
+                    // Adjust star position based on camera
+                    const adjustedX = star.x - (this.camera.position.x - screenCenterX) * 0.1;
+                    const adjustedY = star.y - (this.camera.position.y - screenCenterY) * 0.1;
+                    
+                    // Wrap stars around screen
+                    const wrappedX = ((adjustedX % this.canvas.width) + this.canvas.width) % this.canvas.width;
+                    const wrappedY = ((adjustedY % this.canvas.height) + this.canvas.height) % this.canvas.height;
+                    
+                    this.ctx.globalAlpha = star.brightness;
+                    this.ctx.beginPath();
+                    this.ctx.arc(wrappedX, wrappedY, star.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                this.ctx.globalAlpha = 1;
+                
+                // Translate to camera position
+                this.ctx.save();
+                this.ctx.translate(
+                    screenCenterX - this.camera.position.x * this.camera.zoom,
+                    screenCenterY - this.camera.position.y * this.camera.zoom
+                );
+                this.ctx.scale(this.camera.zoom, this.camera.zoom);
+                
+                // Render Earth
+                this.ctx.fillStyle = this.earth.color;
+                this.ctx.beginPath();
+                this.ctx.arc(
+                    this.earth.position.x,
+                    this.earth.position.y,
+                    this.earth.radius,
+                    0,
+                    Math.PI * 2
+                );
+                this.ctx.fill();
+                
+                // Render Earth atmosphere
+                const gradient = this.ctx.createRadialGradient(
+                    this.earth.position.x,
+                    this.earth.position.y,
+                    this.earth.radius,
+                    this.earth.position.x,
+                    this.earth.position.y,
+                    this.earth.radius + 10
+                );
+                gradient.addColorStop(0, 'rgba(120, 180, 255, 0)');
+                gradient.addColorStop(1, 'rgba(120, 180, 255, 0.3)');
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.beginPath();
+                this.ctx.arc(
+                    this.earth.position.x,
+                    this.earth.position.y,
+                    this.earth.radius + 10,
+                    0,
+                    Math.PI * 2
+                );
+                this.ctx.fill();
+                
+                // Render spacecraft
+                this.ctx.save();
+                this.ctx.translate(this.spacecraft.position.x, this.spacecraft.position.y);
+                this.ctx.rotate(this.spacecraft.angle);
+                
+                // Draw spacecraft body
+                this.ctx.fillStyle = '#dddddd';
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, -this.spacecraft.size);
+                this.ctx.lineTo(this.spacecraft.size / 2, this.spacecraft.size / 2);
+                this.ctx.lineTo(-this.spacecraft.size / 2, this.spacecraft.size / 2);
+                this.ctx.closePath();
+                this.ctx.fill();
+                
+                // Draw spacecraft details
+                this.ctx.fillStyle = '#999999';
+                this.ctx.beginPath();
+                this.ctx.rect(-this.spacecraft.size / 4, -this.spacecraft.size / 2, this.spacecraft.size / 2, this.spacecraft.size / 4);
+                this.ctx.fill();
+                
+                // Draw thruster flame if thrusting
+                if (this.spacecraft.thrusting && this.spacecraft.fuel > 0) {
+                    this.ctx.fillStyle = '#ff5500';
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(-this.spacecraft.size / 4, this.spacecraft.size / 2);
+                    this.ctx.lineTo(this.spacecraft.size / 4, this.spacecraft.size / 2);
+                    this.ctx.lineTo(0, this.spacecraft.size);
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                    
+                    // Inner flame
+                    this.ctx.fillStyle = '#ffdd00';
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(-this.spacecraft.size / 8, this.spacecraft.size / 2);
+                    this.ctx.lineTo(this.spacecraft.size / 8, this.spacecraft.size / 2);
+                    this.ctx.lineTo(0, this.spacecraft.size * 0.8);
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                }
+                
+                this.ctx.restore(); // Restore spacecraft rotation
+                
+                // Render trajectory prediction
+                this.renderTrajectory();
+                
+                this.ctx.restore(); // Restore camera translation
+            }
+            
+            renderTrajectory() {
+                // Simple trajectory prediction
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                this.ctx.lineWidth = 1;
+                this.ctx.setLineDash([5, 5]);
+                this.ctx.beginPath();
+                
+                let pos = this.spacecraft.position.clone();
+                let vel = this.spacecraft.velocity.clone();
+                
+                this.ctx.moveTo(pos.x, pos.y);
+                
+                for (let i = 0; i < 100; i++) {
+                    // Apply gravity
+                    const toEarth = this.earth.position.subtract(pos);
+                    const distance = toEarth.magnitude();
+                    
+                    if (distance <= this.earth.radius) {
+                        break; // Stop if hitting Earth
+                    }
+                    
+                    const gravity = 9.8;
+                    const forceMagnitude = gravity * (1 / (distance * distance)) * 0.1 * 5000;
+                    const gravityForce = toEarth.normalize().multiply(forceMagnitude);
+                    
+                    vel = vel.add(gravityForce);
+                    pos = pos.add(vel.multiply(0.1));
+                    
+                    this.ctx.lineTo(pos.x, pos.y);
+                }
+                
+                this.ctx.stroke();
+                this.ctx.setLineDash([]);
+            }
+            
+            restartGame() {
+                // Reset game state
+                this.gameOver = false;
+                
+                // Reset spacecraft
+                this.spacecraft.position = new Vector(
+                    this.earth.position.x,
+                    this.earth.position.y - this.earth.radius - 30
+                );
+                this.spacecraft.velocity = new Vector(0, 0);
+                this.spacecraft.angle = -Math.PI / 2;
+                this.spacecraft.fuel = this.spacecraft.maxFuel;
+                this.spacecraft.thrusting = false;
+                this.spacecraft.rotatingLeft = false;
+                this.spacecraft.rotatingRight = false;
+                
+                // Reset camera
+                this.camera.position = this.spacecraft.position;
+                this.camera.zoom = 1;
+                
+                // Hide game over screen
+                document.getElementById('gameOverScreen').classList.add('hidden');
+                
+                // Reset UI
+                const fuelBar = document.getElementById('fuelBar');
+                if (fuelBar) {
+                    fuelBar.style.width = '100%';
+                }
+                
+                const velocityDisplay = document.getElementById('velocity');
+                if (velocityDisplay) {
+                    velocityDisplay.textContent = '0 m/s';
+                }
+                
+                const altitudeDisplay = document.getElementById('altitude');
+                if (altitudeDisplay) {
+                    altitudeDisplay.textContent = '30 km';
+                }
+            }
+        }
+        
+        // Initialize the game when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('gameCanvas');
+            const startScreen = document.getElementById('startScreen');
+            const gameUI = document.getElementById('gameUI');
+            const startButton = document.getElementById('startButton');
+            
+            // Add event listener to start button
+            startButton.addEventListener('click', () => {
+                // Hide start screen
+                startScreen.classList.add('hidden');
+                
+                // Show game UI
+                gameUI.classList.remove('hidden');
+                
+                // Initialize game
+                const game = new SimpleGame(canvas);
+                
+                // Log controls to console
+                console.log('Cosmic Explorer Controls:');
+                console.log('- Arrow Up / W: Apply thrust');
+                console.log('- Arrow Left / A: Rotate left');
+                console.log('- Arrow Right / D: Rotate right');
+                console.log('- + / -: Zoom in/out');
+            });
+        });
+    </script>
+</body>
+</html>
