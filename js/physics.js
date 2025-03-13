@@ -58,50 +58,76 @@ function calculateTrajectory(rocket, points) {
     
     const trajectoryPoints = [];
     
-    // Make a copy of the rocket's current state for simulation
-    let simX = rocket.x;
-    let simY = rocket.y;
-    let simVelX = rocket.velocity.x;
-    let simVelY = rocket.velocity.y;
+    // Make a deep copy of the rocket's current state for simulation
+    let simRocket = {
+        x: rocket.x,
+        y: rocket.y,
+        velocity: {
+            x: rocket.velocity.x,
+            y: rocket.velocity.y
+        }
+    };
     
     // Use 3x more points as requested
     const extendedPoints = points * 3;
-    const timeStep = 1.0; // Simulation time step
     
+    // Smaller time step for more accurate simulation
+    const timeStep = 0.5;
+    
+    // Adaptive time step based on velocity
+    const speed = Math.sqrt(simRocket.velocity.x * simRocket.velocity.x + 
+                           simRocket.velocity.y * simRocket.velocity.y);
+    const adaptiveTimeStep = Math.min(0.5, Math.max(0.1, 5.0 / (speed + 1)));
+    
+    // Minimum number of points to calculate
+    const minPoints = Math.min(30, extendedPoints);
+    
+    // Simulate multiple steps
     for (let i = 0; i < extendedPoints; i++) {
-        // Simulate Earth gravity
-        const distanceToEarth = calculateDistance(simX, simY);
+        // Apply Earth gravity to the simulated rocket
+        const dx = 0 - simRocket.x; // Earth is at (0,0)
+        const dy = 0 - simRocket.y;
+        const distanceSquared = dx * dx + dy * dy;
+        const distance = Math.sqrt(distanceSquared);
         
         // Check for collision with Earth
-        if (distanceToEarth < EARTH_RADIUS) {
+        if (distance < EARTH_RADIUS) {
             break;
         }
         
-        // Calculate gravity force
-        const gravityForce = GRAVITY_FACTOR * (EARTH_RADIUS * EARTH_RADIUS) / (distanceToEarth * distanceToEarth);
+        // Calculate gravity force using inverse square law
+        // Use a minimum distance to prevent extreme forces when very close
+        const effectiveDistanceSquared = Math.max(distanceSquared, EARTH_RADIUS * EARTH_RADIUS * 0.1);
+        const gravityForce = GRAVITY_FACTOR * (EARTH_RADIUS * EARTH_RADIUS) / effectiveDistanceSquared;
+        const gravityAngle = Math.atan2(dy, dx);
         
-        // Calculate direction of gravity (towards Earth center)
-        const gravityAngle = Math.atan2(simY, simX);
-        
-        // Apply gravity to velocity (Earth pulls inward)
-        simVelX += Math.cos(gravityAngle) * gravityForce * timeStep;
-        simVelY += Math.sin(gravityAngle) * gravityForce * timeStep;
+        // Apply gravity force to velocity
+        simRocket.velocity.x += Math.cos(gravityAngle) * gravityForce * adaptiveTimeStep;
+        simRocket.velocity.y += Math.sin(gravityAngle) * gravityForce * adaptiveTimeStep;
         
         // Update position based on velocity
-        simX += simVelX * timeStep;
-        simY += simVelY * timeStep;
+        simRocket.x += simRocket.velocity.x * adaptiveTimeStep;
+        simRocket.y += simRocket.velocity.y * adaptiveTimeStep;
         
         // Store point with opacity information (for dimming effect)
         trajectoryPoints.push({ 
-            x: simX, 
-            y: simY,
+            x: simRocket.x, 
+            y: simRocket.y,
             opacity: 1 - (i / extendedPoints) // Opacity decreases with distance
         });
         
-        // If we've gone too far, stop calculating
-        if (distanceToEarth > EARTH_RADIUS * 20) {
+        // Only break if we've calculated at least the minimum number of points
+        // and we've gone too far from Earth
+        if (trajectoryPoints.length >= minPoints && distance > EARTH_RADIUS * 20) {
             break;
         }
+    }
+    
+    // Debug log
+    console.log(`Calculated ${trajectoryPoints.length} trajectory points`);
+    if (trajectoryPoints.length > 0) {
+        console.log(`First point: (${trajectoryPoints[0].x.toFixed(2)}, ${trajectoryPoints[0].y.toFixed(2)})`);
+        console.log(`Last point: (${trajectoryPoints[trajectoryPoints.length-1].x.toFixed(2)}, ${trajectoryPoints[trajectoryPoints.length-1].y.toFixed(2)})`);
     }
     
     return trajectoryPoints;
