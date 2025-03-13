@@ -1,4 +1,4 @@
-/**
+r/**
  * Renders the entire game scene
  * @param {CanvasRenderingContext2D} ctx - The canvas context
  * @param {Object} gameState - The current game state
@@ -20,11 +20,11 @@ function renderScene(ctx, gameState) {
     // Clear the canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    // Draw stars before camera transform (fixed background)
+    drawStars(ctx, stars, gameTime, canvas.width, canvas.height);
+    
     // Set up camera transform
     setupCameraTransform(ctx, camera, canvas.width, canvas.height);
-    
-    // Draw stars
-    drawStars(ctx, stars, gameTime);
     
     // Always draw sun and planets
     drawSun(ctx, gameTime);
