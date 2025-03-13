@@ -1,4 +1,4 @@
-r/**
+/**
  * Renders the entire game scene
  * @param {CanvasRenderingContext2D} ctx - The canvas context
  * @param {Object} gameState - The current game state
@@ -37,11 +37,11 @@ function renderScene(ctx, gameState) {
     // Draw orbit path
     drawOrbitPath(ctx, orbitPath);
     
-    // Draw trajectory
+    // Draw trajectory below rocket
     drawTrajectory(ctx, rocket, trajectoryPoints);
     
-    // Draw rocket
-    drawRocket(ctx, rocket);
+    // Draw rocket on top with game time for flame animation
+    drawRocket(ctx, rocket, gameTime);
     
     // Draw orbit guide
     drawOrbitGuide(ctx, rocket);
@@ -65,18 +65,18 @@ function drawTrajectory(ctx, rocket, trajectoryPoints) {
         ctx.beginPath();
         ctx.moveTo(rocket.x, rocket.y);
         
-        // Create a gradient for the line with more vibrant colors
+        // Create a gradient for the line with more subtle colors
         const gradient = ctx.createLinearGradient(
             rocket.x, rocket.y,
             trajectoryPoints[trajectoryPoints.length - 1].x,
             trajectoryPoints[trajectoryPoints.length - 1].y
         );
-        gradient.addColorStop(0, 'rgba(0, 255, 255, 0.9)'); // Bright cyan at start
-        gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.7)'); // White in middle
-        gradient.addColorStop(1, 'rgba(255, 0, 255, 0.3)'); // Fading to magenta
+        gradient.addColorStop(0, 'rgba(0, 255, 255, 0.4)'); // More transparent cyan at start
+        gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.3)'); // More transparent white in middle
+        gradient.addColorStop(1, 'rgba(255, 0, 255, 0.2)'); // More transparent magenta at end
         
         ctx.strokeStyle = gradient;
-        ctx.lineWidth = 4; // Increased line width for better visibility
+        ctx.lineWidth = 2; // Thinner line
         
         // Draw the trajectory path
         trajectoryPoints.forEach(point => {
@@ -84,14 +84,14 @@ function drawTrajectory(ctx, rocket, trajectoryPoints) {
         });
         ctx.stroke();
         
-        // Draw dots at intervals with fading opacity
-        for (let i = 0; i < trajectoryPoints.length; i += 15) {
+        // Draw dots at wider intervals with fading opacity
+        for (let i = 0; i < trajectoryPoints.length; i += TRAJECTORY_SKIP) {
             if (i < trajectoryPoints.length) {
                 const point = trajectoryPoints[i];
-                const opacity = point.opacity !== undefined ? point.opacity : 0.8;
-                const dotSize = Math.max(1, 3 - (i / trajectoryPoints.length) * 2); // Dots get smaller with distance
+                const opacity = point.opacity !== undefined ? point.opacity : 0.5;
+                const dotSize = Math.max(1, 2.5 - (i / trajectoryPoints.length) * 2); // Slightly smaller dots
                 
-                ctx.fillStyle = `rgba(255, 255, 255, ${opacity * 0.9})`;
+                ctx.fillStyle = `rgba(255, 255, 255, ${opacity * 0.7})`; // More transparent dots
                 ctx.beginPath();
                 ctx.arc(point.x, point.y, dotSize, 0, Math.PI * 2);
                 ctx.fill();
@@ -175,6 +175,8 @@ function drawOrbitCount(ctx, orbitCount) {
         ctx.fillText(`Orbits: ${orbitCount}`, 20, 30);
     }
 }
+
+
 
 /**
  * Resizes the canvas to fill the window

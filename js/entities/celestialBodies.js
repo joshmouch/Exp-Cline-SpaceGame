@@ -1,81 +1,4 @@
 /**
- * Draws Earth with land masses, water twinkles, and clouds
- * @param {CanvasRenderingContext2D} ctx - The canvas context
- * @param {number} gameTime - Current game time for animations
- * @param {Array} waterTwinkles - Array of water twinkle objects
- * @param {Array} clouds - Array of cloud objects
- */
-function drawEarth(ctx, gameTime, waterTwinkles, clouds) {
-    const earth = CELESTIAL_BODIES.EARTH;
-    
-    // Earth base
-    ctx.fillStyle = earth.color;
-    ctx.beginPath();
-    ctx.arc(earth.position.x, earth.position.y, earth.radius, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Earth land masses
-    ctx.fillStyle = '#10b981';
-    
-    // North America
-    drawLandmass(ctx, -0.2, -0.3, 0.3, 0.25);
-    
-    // South America
-    drawLandmass(ctx, -0.1, 0.1, 0.15, 0.3);
-    
-    // Europe and Africa
-    drawLandmass(ctx, 0.2, -0.1, 0.25, 0.5);
-    
-    // Asia and Australia
-    drawLandmass(ctx, 0.5, -0.2, 0.4, 0.4);
-    
-    // Water twinkles
-    const earthRadius = earth.radius;
-    waterTwinkles.forEach(twinkle => {
-        const brightness = 0.5 + 0.5 * Math.sin(gameTime * twinkle.twinkleSpeed + twinkle.twinkleOffset);
-        const x = earth.position.x + Math.cos(twinkle.angle) * Math.cos(twinkle.latitude) * earthRadius;
-        const y = earth.position.y + Math.sin(twinkle.angle) * Math.cos(twinkle.latitude) * earthRadius;
-        
-        ctx.fillStyle = `rgba(255, 255, 255, ${brightness * 0.3})`;
-        ctx.beginPath();
-        ctx.arc(x, y, 2, 0, Math.PI * 2);
-        ctx.fill();
-    });
-    
-    // Clouds
-    clouds.forEach(cloud => {
-        const x = earth.position.x + Math.cos(cloud.angle) * earthRadius;
-        const y = earth.position.y + Math.sin(cloud.angle) * earthRadius;
-        
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-        ctx.beginPath();
-        ctx.ellipse(x, y, cloud.width, cloud.height, cloud.angle, 0, Math.PI * 2);
-        ctx.fill();
-    });
-}
-
-/**
- * Draws a land mass on Earth
- * @param {CanvasRenderingContext2D} ctx - The canvas context
- * @param {number} centerX - X coordinate of the land mass center relative to Earth radius
- * @param {number} centerY - Y coordinate of the land mass center relative to Earth radius
- * @param {number} width - Width of the land mass relative to Earth radius
- * @param {number} height - Height of the land mass relative to Earth radius
- */
-function drawLandmass(ctx, centerX, centerY, width, height) {
-    const earth = CELESTIAL_BODIES.EARTH;
-    const earthRadius = earth.radius;
-    const x = earth.position.x + centerX * earthRadius;
-    const y = earth.position.y + centerY * earthRadius;
-    const w = width * earthRadius;
-    const h = height * earthRadius;
-    
-    ctx.beginPath();
-    ctx.ellipse(x, y, w, h, 0, 0, Math.PI * 2);
-    ctx.fill();
-}
-
-/**
  * Draws the Moon with craters
  * @param {CanvasRenderingContext2D} ctx - The canvas context
  */
@@ -340,11 +263,53 @@ function createStars(count, maxDistance = 1000) {
 function createClouds(count) {
     const clouds = [];
     for (let i = 0; i < count; i++) {
+        // Create a cloud with 3-5 puffs
+        const numPuffs = Math.floor(Math.random() * 3) + 3;
+        const puffs = [];
+        const cloudWidth = Math.random() * 40 + 30;
+        
+        // Create puffs in a more natural clustered arrangement
+        const centerX = 0;
+        const centerY = 0;
+        const maxRadius = cloudWidth * 0.3;
+
+        // Create main cluster of puffs
+        for (let j = 0; j < numPuffs; j++) {
+            const angle = (j / numPuffs) * Math.PI * 2;
+            const distance = Math.random() * cloudWidth * 0.3;
+            const puffX = centerX + Math.cos(angle) * distance;
+            const puffY = centerY + Math.sin(angle) * distance;
+            
+            // Varied sizes with larger central puffs
+            const distanceFromCenter = Math.sqrt(puffX * puffX + puffY * puffY);
+            const sizeVariation = 1 - (distanceFromCenter / (cloudWidth * 0.5));
+            const radius = (Math.random() * 6 + 10) * (0.7 + sizeVariation * 0.5);
+            
+            puffs.push({
+                offsetX: puffX,
+                offsetY: puffY,
+                radius: radius,
+                opacity: 0.7 + Math.random() * 0.3
+            });
+        }
+
+        // Add some smaller detail puffs
+        const detailPuffs = Math.floor(Math.random() * 3) + 2;
+        for (let j = 0; j < detailPuffs; j++) {
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.random() * cloudWidth * 0.4;
+            puffs.push({
+                offsetX: centerX + Math.cos(angle) * distance,
+                offsetY: centerY + Math.sin(angle) * distance,
+                radius: Math.random() * 5 + 5,
+                opacity: 0.5 + Math.random() * 0.3
+            });
+        }
+        
         clouds.push({
             angle: Math.random() * Math.PI * 2,
-            width: Math.random() * 40 + 20,
-            height: Math.random() * 20 + 10,
-            speed: (Math.random() * 0.0005 + 0.0002) * (Math.random() > 0.5 ? 1 : -1)
+            speed: (Math.random() * 0.0001 + 0.00005) * (Math.random() > 0.5 ? 1 : -1), // Even slower for smoother movement
+            puffs: puffs
         });
     }
     return clouds;

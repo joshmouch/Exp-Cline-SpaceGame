@@ -41,7 +41,7 @@ function init() {
     
     // Generate visual elements
     gameState.stars = createStars(STAR_COUNT);
-    gameState.clouds = createClouds(10);
+    gameState.clouds = createClouds(20); // More clouds for better coverage
     gameState.waterTwinkles = createWaterTwinkles(30);
     
     // Set up event listeners
