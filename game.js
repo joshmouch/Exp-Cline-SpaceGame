@@ -1,6 +1,6 @@
 // Game constants
-const EARTH_RADIUS = 100;
-const MOON_RADIUS = 30;
+const EARTH_RADIUS = 150; // Increased Earth size for better visibility
+const MOON_RADIUS = 40;
 const SUN_RADIUS = 200;
 const PLANET_RADII = {
     mercury: 20,
@@ -11,13 +11,13 @@ const PLANET_RADII = {
 };
 const ROCKET_HEIGHT = 20;
 const ROCKET_WIDTH = 10;
-const INITIAL_FUEL = 100;
-const FUEL_CONSUMPTION_RATE = 0.2;
+const INITIAL_FUEL = 200;
+const FUEL_CONSUMPTION_RATE = 0.1;
 const ACCELERATION_RATE = 0.05;
 const ROTATION_RATE = 0.05;
-const GRAVITY_FACTOR = 0.001; // Low gravity to make escape easier
+const GRAVITY_FACTOR = 0.001; // Adjusted gravity for better orbital mechanics
 const SAFE_LANDING_VELOCITY = 1.0;
-const TRAJECTORY_POINTS = 100;
+const TRAJECTORY_POINTS = 200;
 const STAR_COUNT = 200;
 
 // Game variables
@@ -44,6 +44,9 @@ let waterTwinkles = [];
 let trajectoryPoints = [];
 let keysPressed = {};
 let gameTime = 0;
+let orbitCount = 0;
+let lastQuadrant = 0;
+let orbitPath = []; // Store the rocket's path for orbit visualization
 
 // Initialize the game
 function init() {
@@ -200,6 +203,36 @@ function update() {
         rocket.x += rocket.velocity.x;
         rocket.y += rocket.velocity.y;
         
+        // Store rocket path for orbit visualization (every 10 frames to avoid too many points)
+        if (gameTime % 0.1 < 0.02) {
+            orbitPath.push({ x: rocket.x, y: rocket.y });
+            // Keep only the last 1000 points to avoid memory issues
+            if (orbitPath.length > 1000) {
+                orbitPath.shift();
+            }
+        }
+        
+        // Track orbit completion
+        if (distanceToEarth > EARTH_RADIUS * 1.5) {
+            // Determine current quadrant (1, 2, 3, or 4)
+            let currentQuadrant = 0;
+            if (rocket.x >= 0 && rocket.y < 0) currentQuadrant = 1;
+            else if (rocket.x < 0 && rocket.y < 0) currentQuadrant = 2;
+            else if (rocket.x < 0 && rocket.y >= 0) currentQuadrant = 3;
+            else if (rocket.x >= 0 && rocket.y >= 0) currentQuadrant = 4;
+            
+            // If we moved from quadrant 4 to quadrant 1, we completed an orbit
+            if (lastQuadrant === 4 && currentQuadrant === 1) {
+                orbitCount++;
+                // Clear orbit path when completing an orbit to show the new orbit
+                if (orbitCount > 0 && orbitCount % 1 === 0) {
+                    orbitPath = [];
+                }
+            }
+            
+            lastQuadrant = currentQuadrant;
+        }
+        
         // Check for collision with Earth
         if (distanceToEarth < EARTH_RADIUS + ROCKET_HEIGHT / 2) {
             const speed = Math.sqrt(rocket.velocity.x * rocket.velocity.x + rocket.velocity.y * rocket.velocity.y);
@@ -260,9 +293,34 @@ function update() {
         }
     }
     
-    // Update camera position to follow rocket
-    camera.x += (rocket.x - camera.x) * 0.05;
-    camera.y += (rocket.y - camera.y) * 0.05;
+    // Update camera position to always keep Earth in view
+    const distanceToEarthCenter = Math.sqrt(rocket.x * rocket.x + rocket.y * rocket.y);
+    
+    // Always position camera to show both Earth and rocket
+    const earthToRocketVector = {
+        x: rocket.x,
+        y: rocket.y
+    };
+    const vectorLength = Math.sqrt(earthToRocketVector.x * earthToRocketVector.x + earthToRocketVector.y * earthToRocketVector.y);
+    
+    // Position camera between Earth and rocket, but closer to rocket
+    const cameraTargetX = earthToRocketVector.x * 0.7;
+    const cameraTargetY = earthToRocketVector.y * 0.7;
+    
+    camera.x += (cameraTargetX - camera.x) * 0.05;
+    camera.y += (cameraTargetY - camera.y) * 0.05;
+    
+    // Adjust zoom based on distance to Earth
+    const maxDistance = 5000; // Maximum distance to consider for zoom
+    const minZoom = 0.1;
+    const maxZoom = 1.0;
+    
+    // Calculate ideal zoom based on distance
+    let distanceRatio = Math.min(distanceToEarthCenter / maxDistance, 1);
+    let idealZoom = maxZoom - (maxZoom - minZoom) * distanceRatio;
+    
+    // Ensure we can always see Earth
+    camera.targetZoom = Math.max(minZoom, Math.min(idealZoom, maxZoom));
     camera.zoom += (camera.targetZoom - camera.zoom) * 0.05;
     
     // Update clouds
@@ -386,16 +444,38 @@ function render() {
     // Draw Earth
     drawEarth();
     
+    // Draw orbit path
+    if (orbitPath.length > 1) {
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(orbitPath[0].x, orbitPath[0].y);
+        for (let i = 1; i < orbitPath.length; i++) {
+            ctx.lineTo(orbitPath[i].x, orbitPath[i].y);
+        }
+        ctx.stroke();
+    }
+    
     // Draw trajectory
     if (trajectoryPoints.length > 0) {
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(rocket.x, rocket.y);
         trajectoryPoints.forEach(point => {
             ctx.lineTo(point.x, point.y);
         });
         ctx.stroke();
+        
+        // Draw dots at intervals to make trajectory more visible
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        for (let i = 0; i < trajectoryPoints.length; i += 10) {
+            if (i < trajectoryPoints.length) {
+                ctx.beginPath();
+                ctx.arc(trajectoryPoints[i].x, trajectoryPoints[i].y, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
     }
     
     // Draw rocket
@@ -464,6 +544,29 @@ function render() {
         ctx.beginPath();
         ctx.arc(rocket.x, rocket.y, ROCKET_HEIGHT * 0.7, 0, Math.PI * 2);
         ctx.fill();
+    }
+    
+    // Display orbit count
+    if (orbitCount > 0) {
+        ctx.save();
+        ctx.resetTransform();
+        ctx.fillStyle = 'white';
+        ctx.font = '16px Arial';
+        ctx.fillText(`Orbits: ${orbitCount}`, 20, 30);
+        ctx.restore();
+    }
+    
+    // Draw orbit guide
+    if (!rocket.landed && !rocket.exploded) {
+        // Draw a circular guide showing ideal orbital path
+        const idealOrbitRadius = EARTH_RADIUS * 3;
+        ctx.strokeStyle = 'rgba(100, 200, 255, 0.2)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.arc(0, 0, idealOrbitRadius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
     }
     
     ctx.restore();

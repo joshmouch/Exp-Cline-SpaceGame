@@ -1,0 +1,144 @@
+/**
+ * Renders the entire game scene
+ * @param {CanvasRenderingContext2D} ctx - The canvas context
+ * @param {Object} gameState - The current game state
+ */
+function renderScene(ctx, gameState) {
+    const { 
+        canvas, 
+        rocket, 
+        camera, 
+        stars, 
+        clouds, 
+        waterTwinkles, 
+        trajectoryPoints, 
+        orbitPath, 
+        orbitCount, 
+        gameTime 
+    } = gameState;
+    
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Set up camera transform
+    setupCameraTransform(ctx, camera, canvas.width, canvas.height);
+    
+    // Draw stars
+    drawStars(ctx, stars, gameTime);
+    
+    // Draw sun and planets if zoomed out
+    if (camera.zoom < 0.5) {
+        drawSun(ctx, gameTime);
+        drawPlanets(ctx);
+        drawMoon(ctx);
+    }
+    
+    // Draw Earth
+    drawEarth(ctx, gameTime, waterTwinkles, clouds);
+    
+    // Draw orbit path
+    drawOrbitPath(ctx, orbitPath);
+    
+    // Draw trajectory
+    drawTrajectory(ctx, rocket, trajectoryPoints);
+    
+    // Draw rocket
+    drawRocket(ctx, rocket);
+    
+    // Draw orbit guide
+    drawOrbitGuide(ctx, rocket);
+    
+    // Reset camera transform for UI elements
+    resetCameraTransform(ctx);
+    
+    // Draw orbit count
+    drawOrbitCount(ctx, orbitCount);
+}
+
+/**
+ * Draws the rocket's trajectory
+ * @param {CanvasRenderingContext2D} ctx - The canvas context
+ * @param {Object} rocket - The rocket object
+ * @param {Array} trajectoryPoints - Array of trajectory points
+ */
+function drawTrajectory(ctx, rocket, trajectoryPoints) {
+    if (trajectoryPoints.length > 0) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(rocket.x, rocket.y);
+        trajectoryPoints.forEach(point => {
+            ctx.lineTo(point.x, point.y);
+        });
+        ctx.stroke();
+        
+        // Draw dots at intervals to make trajectory more visible
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        for (let i = 0; i < trajectoryPoints.length; i += 10) {
+            if (i < trajectoryPoints.length) {
+                ctx.beginPath();
+                ctx.arc(trajectoryPoints[i].x, trajectoryPoints[i].y, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    }
+}
+
+/**
+ * Draws the rocket's orbit path
+ * @param {CanvasRenderingContext2D} ctx - The canvas context
+ * @param {Array} orbitPath - Array of orbit path points
+ */
+function drawOrbitPath(ctx, orbitPath) {
+    if (orbitPath.length > 1) {
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(orbitPath[0].x, orbitPath[0].y);
+        for (let i = 1; i < orbitPath.length; i++) {
+            ctx.lineTo(orbitPath[i].x, orbitPath[i].y);
+        }
+        ctx.stroke();
+    }
+}
+
+/**
+ * Draws the orbit guide
+ * @param {CanvasRenderingContext2D} ctx - The canvas context
+ * @param {Object} rocket - The rocket object
+ */
+function drawOrbitGuide(ctx, rocket) {
+    if (!rocket.landed && !rocket.exploded) {
+        // Draw a circular guide showing ideal orbital path
+        const idealOrbitRadius = EARTH_RADIUS * 3;
+        ctx.strokeStyle = 'rgba(100, 200, 255, 0.2)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.arc(0, 0, idealOrbitRadius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+}
+
+/**
+ * Draws the orbit count
+ * @param {CanvasRenderingContext2D} ctx - The canvas context
+ * @param {number} orbitCount - Number of completed orbits
+ */
+function drawOrbitCount(ctx, orbitCount) {
+    if (orbitCount > 0) {
+        ctx.fillStyle = 'white';
+        ctx.font = '16px Arial';
+        ctx.fillText(`Orbits: ${orbitCount}`, 20, 30);
+    }
+}
+
+/**
+ * Resizes the canvas to fill the window
+ * @param {HTMLCanvasElement} canvas - The canvas element
+ */
+function resizeCanvas(canvas) {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
