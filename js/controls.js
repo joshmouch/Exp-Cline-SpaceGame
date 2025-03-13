@@ -16,10 +16,10 @@ function createControls() {
  * Sets up event listeners for keyboard and button controls
  * @param {Object} controls - The controls object
  * @param {Object} camera - The camera object
- * @param {Function} toggleAcceleration - Function to toggle rocket acceleration
+ * @param {Function} accelerateCallback - Function to handle acceleration
  * @param {Function} resetGame - Function to reset the game
  */
-function setupEventListeners(controls, camera, toggleAcceleration, resetGame) {
+function setupEventListeners(controls, camera, accelerateCallback, resetGame) {
     const canvas = document.getElementById('gameCanvas');
     
     // Keyboard controls
@@ -81,31 +81,31 @@ function setupEventListeners(controls, camera, toggleAcceleration, resetGame) {
     
     // Button controls
     document.getElementById('accelerateBtn').addEventListener('click', () => {
-        toggleAcceleration();
+        accelerateCallback(true, true); // true, true = state, isToggle
     });
     
     document.getElementById('leftBtn').addEventListener('mousedown', () => {
-        controls.keysPressed['ArrowLeft'] = true;
+        controls.keysPressed['a'] = true;
     });
     
     document.getElementById('leftBtn').addEventListener('mouseup', () => {
-        controls.keysPressed['ArrowLeft'] = false;
+        controls.keysPressed['a'] = false;
     });
     
     document.getElementById('leftBtn').addEventListener('mouseleave', () => {
-        controls.keysPressed['ArrowLeft'] = false;
+        controls.keysPressed['a'] = false;
     });
     
     document.getElementById('rightBtn').addEventListener('mousedown', () => {
-        controls.keysPressed['ArrowRight'] = true;
+        controls.keysPressed['d'] = true;
     });
     
     document.getElementById('rightBtn').addEventListener('mouseup', () => {
-        controls.keysPressed['ArrowRight'] = false;
+        controls.keysPressed['d'] = false;
     });
     
     document.getElementById('rightBtn').addEventListener('mouseleave', () => {
-        controls.keysPressed['ArrowRight'] = false;
+        controls.keysPressed['d'] = false;
     });
     
     document.getElementById('zoomInBtn').addEventListener('click', () => {
@@ -130,28 +130,47 @@ function setupEventListeners(controls, camera, toggleAcceleration, resetGame) {
 }
 
 /**
+ * Cycles to the next focus option
+ * @param {Object} controls - The controls object
+ */
+function cycleFocus(controls) {
+    const focusSelect = document.getElementById('focusSelect');
+    const options = Array.from(focusSelect.options);
+    const currentIndex = options.findIndex(option => option.value === controls.focus);
+    const nextIndex = (currentIndex + 1) % options.length;
+    
+    controls.focus = options[nextIndex].value;
+    focusSelect.value = controls.focus;
+}
+
+/**
  * Handles user input for rocket control and camera
  * @param {Object} controls - The controls object
  * @param {Object} rocket - The rocket object
  * @param {Object} camera - The camera object
  */
 function handleInput(controls, rocket, camera) {
-    // Handle rotation
-    if (controls.keysPressed['ArrowLeft']) {
+    // Handle rotation with A and D keys
+    if (controls.keysPressed['a'] || controls.keysPressed['A']) {
         rocket.angle -= ROTATION_RATE;
     }
     
-    if (controls.keysPressed['ArrowRight']) {
+    if (controls.keysPressed['d'] || controls.keysPressed['D']) {
         rocket.angle += ROTATION_RATE;
     }
     
-    // Handle acceleration with spacebar
-    if (controls.keysPressed[' '] && rocket.fuel > 0 && !rocket.exploded) {
-        rocket.accelerating = true;
-        document.getElementById('accelerateBtn').classList.add('active');
-    } else if (controls.keysPressed[' '] === false && rocket.accelerating) {
-        rocket.accelerating = false;
-        document.getElementById('accelerateBtn').classList.remove('active');
+    // Handle acceleration with W key
+    if (controls.keysPressed['w'] || controls.keysPressed['W']) {
+        setAcceleration(rocket, true);
+    } else {
+        setAcceleration(rocket, false);
+    }
+    
+    // Handle focus cycling with F key
+    if (controls.keysPressed['f'] || controls.keysPressed['F']) {
+        cycleFocus(controls);
+        controls.keysPressed['f'] = false;
+        controls.keysPressed['F'] = false;
     }
     
     // Handle zoom with + and - keys
@@ -169,16 +188,38 @@ function handleInput(controls, rocket, camera) {
 }
 
 /**
- * Toggles the rocket's acceleration state
+ * Sets the rocket's acceleration state
  * @param {Object} rocket - The rocket object
+ * @param {boolean} state - Whether to accelerate or not
+ * @param {boolean} isToggle - Whether to toggle the state (true) or set it directly (false)
  */
-function toggleAcceleration(rocket) {
-    if (rocket.fuel > 0 && !rocket.exploded) {
-        rocket.accelerating = !rocket.accelerating;
-        document.getElementById('accelerateBtn').classList.toggle('active', rocket.accelerating);
+function setAcceleration(rocket, state, isToggle = false) {
+    if (!rocket) {
+        console.error('Rocket object is undefined in setAcceleration');
+        return;
+    }
+    
+    console.log('setAcceleration called with:', { rocket, state, isToggle });
+    
+    if (isToggle) {
+        // Toggle mode (for button)
+        if (rocket.fuel > 0 && !rocket.exploded) {
+            rocket.accelerating = !rocket.accelerating;
+            console.log('Toggling acceleration to:', rocket.accelerating);
+            document.getElementById('accelerateBtn').classList.toggle('active', rocket.accelerating);
+        } else {
+            rocket.accelerating = false;
+            document.getElementById('accelerateBtn').classList.remove('active');
+        }
     } else {
-        rocket.accelerating = false;
-        document.getElementById('accelerateBtn').classList.remove('active');
+        // Direct mode (for key)
+        if (rocket.fuel > 0 && !rocket.exploded && state) {
+            rocket.accelerating = true;
+            document.getElementById('accelerateBtn').classList.add('active');
+        } else {
+            rocket.accelerating = false;
+            document.getElementById('accelerateBtn').classList.remove('active');
+        }
     }
 }
 

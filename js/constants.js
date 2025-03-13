@@ -15,10 +15,19 @@ const INITIAL_FUEL = 200;
 const FUEL_CONSUMPTION_RATE = 0.1;
 const ACCELERATION_RATE = 0.01;
 const ROTATION_RATE = 0.05;
-const GRAVITY_FACTOR = 0.01;
-const SAFE_LANDING_VELOCITY = 1.0;
 const TRAJECTORY_POINTS = 200;
 const STAR_COUNT = 200;
+
+// Gravity constants
+const GRAVITY_FACTOR = 0.01;
+const EARTH_GRAVITY = 0.5;
+const MOON_GRAVITY = 0.5;
+const SUN_GRAVITY = 0.5;
+const SAFE_LANDING_VELOCITY = 1.0;
+
+// Camera constants
+const MIN_ZOOM = 0.02;
+const MAX_ZOOM = 2.0;
 
 // Planet positions
 const MOON_POSITION = { x: 500, y: 500 };

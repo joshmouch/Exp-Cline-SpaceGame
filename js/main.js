@@ -39,7 +39,7 @@ function init() {
     setupEventListeners(
         gameState.controls, 
         gameState.camera, 
-        () => toggleAcceleration(gameState.rocket),
+        (state, isToggle = false) => setAcceleration(gameState.rocket, state, isToggle),
         resetGame
     );
     
@@ -99,12 +99,19 @@ function update() {
             accelerateRocket(gameState.rocket);
         }
         
-        // Apply gravity from celestial bodies
+        // Apply Earth gravity
         applyEarthGravity(gameState.rocket);
         
-        // Always apply gravity from all celestial bodies regardless of zoom level
+        // Apply Moon gravity
         applyMoonGravity(gameState.rocket);
-        applySunGravity(gameState.rocket);
+        
+        // Apply Sun gravity only when far from Earth
+        const distanceFromEarthSquared = gameState.rocket.x * gameState.rocket.x + gameState.rocket.y * gameState.rocket.y;
+        const earthOrbitThreshold = (EARTH_RADIUS * 10) * (EARTH_RADIUS * 10);
+        
+        if (distanceFromEarthSquared > earthOrbitThreshold) {
+            applySunGravity(gameState.rocket);
+        }
         
         // Update rocket position
         updateRocketPosition(gameState.rocket);

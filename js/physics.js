@@ -26,7 +26,7 @@ function applyGravity(rocket, bodyX, bodyY, bodyRadius, gravityMultiplier = 1) {
  * @param {Object} rocket - The rocket object
  */
 function applyEarthGravity(rocket) {
-    applyGravity(rocket, 0, 0, EARTH_RADIUS, 0.5);
+    applyGravity(rocket, 0, 0, EARTH_RADIUS, EARTH_GRAVITY);
 }
 
 /**
@@ -34,7 +34,7 @@ function applyEarthGravity(rocket) {
  * @param {Object} rocket - The rocket object
  */
 function applyMoonGravity(rocket) {
-    applyGravity(rocket, MOON_POSITION.x, MOON_POSITION.y, MOON_RADIUS, 0.5);
+    applyGravity(rocket, MOON_POSITION.x, MOON_POSITION.y, MOON_RADIUS, MOON_GRAVITY);
 }
 
 /**
@@ -42,7 +42,7 @@ function applyMoonGravity(rocket) {
  * @param {Object} rocket - The rocket object
  */
 function applySunGravity(rocket) {
-    applyGravity(rocket, SUN_POSITION.x, SUN_POSITION.y, SUN_RADIUS, 0.5);
+    applyGravity(rocket, SUN_POSITION.x, SUN_POSITION.y, SUN_RADIUS, SUN_GRAVITY);
 }
 
 /**
@@ -125,16 +125,22 @@ function calculateTrajectory(rocket, points) {
         simRocket.velocity.x += Math.cos(moonGravityAngle) * moonGravityForce * adaptiveTimeStep;
         simRocket.velocity.y += Math.sin(moonGravityAngle) * moonGravityForce * adaptiveTimeStep;
         
-        // Apply Sun gravity to the simulated rocket
-        const sunDx = SUN_POSITION.x - simRocket.x;
-        const sunDy = SUN_POSITION.y - simRocket.y;
-        const sunDistanceSquared = sunDx * sunDx + sunDy * sunDy;
-        const sunGravityForce = GRAVITY_FACTOR * 0.5 * (SUN_RADIUS * SUN_RADIUS) / sunDistanceSquared;
-        const sunGravityAngle = Math.atan2(sunDy, sunDx);
+        // Apply Sun gravity to the simulated rocket only when far from Earth
+        const distanceFromEarthSquared = simRocket.x * simRocket.x + simRocket.y * simRocket.y;
+        const earthOrbitThreshold = (EARTH_RADIUS * 10) * (EARTH_RADIUS * 10);
         
-        // Apply Sun gravity force to velocity
-        simRocket.velocity.x += Math.cos(sunGravityAngle) * sunGravityForce * adaptiveTimeStep;
-        simRocket.velocity.y += Math.sin(sunGravityAngle) * sunGravityForce * adaptiveTimeStep;
+        // Only apply sun gravity when far from Earth
+        if (distanceFromEarthSquared > earthOrbitThreshold) {
+            const sunDx = SUN_POSITION.x - simRocket.x;
+            const sunDy = SUN_POSITION.y - simRocket.y;
+            const sunDistanceSquared = sunDx * sunDx + sunDy * sunDy;
+            const sunGravityForce = GRAVITY_FACTOR * SUN_GRAVITY * (SUN_RADIUS * SUN_RADIUS) / sunDistanceSquared;
+            const sunGravityAngle = Math.atan2(sunDy, sunDx);
+            
+            // Apply Sun gravity force to velocity
+            simRocket.velocity.x += Math.cos(sunGravityAngle) * sunGravityForce * adaptiveTimeStep;
+            simRocket.velocity.y += Math.sin(sunGravityAngle) * sunGravityForce * adaptiveTimeStep;
+        }
         
         // Update position based on velocity
         simRocket.x += simRocket.velocity.x * adaptiveTimeStep;

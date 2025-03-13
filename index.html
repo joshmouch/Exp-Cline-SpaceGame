@@ -9,36 +9,66 @@
 <body>
     <div class="game-container">
         <canvas id="gameCanvas"></canvas>
-        <div class="controls">
-            <button id="accelerateBtn">Accelerate <span class="shortcut">[Space]</span></button>
-            <button id="leftBtn">Turn Left <span class="shortcut">[←]</span></button>
-            <button id="rightBtn">Turn Right <span class="shortcut">[→]</span></button>
+        <!-- Top controls panel -->
+        <div class="top-controls">
+            <button id="accelerateBtn">Accelerate <span class="shortcut">[W]</span></button>
+            <button id="leftBtn">Turn Left <span class="shortcut">[A]</span></button>
+            <button id="rightBtn">Turn Right <span class="shortcut">[D]</span></button>
             <button id="resetBtn">Reset <span class="shortcut">[R]</span></button>
             <div id="zoomControls">
                 <button id="zoomInBtn">Zoom In <span class="shortcut">[+]</span></button>
                 <button id="zoomOutBtn">Zoom Out <span class="shortcut">[-]</span></button>
             </div>
-            <div class="focus-controls">
-                <div class="focus-select">
-                    <label for="focusSelect">Focus:</label>
-                    <select id="focusSelect">
-                        <option value="ship">Ship</option>
-                        <option value="manual">Manual</option>
-                        <option value="earth">Earth</option>
-                        <option value="moon">Moon</option>
-                        <option value="sun">Sun</option>
-                        <option value="mercury">Mercury</option>
-                        <option value="venus">Venus</option>
-                        <option value="mars">Mars</option>
-                        <option value="jupiter">Jupiter</option>
-                        <option value="saturn">Saturn</option>
-                    </select>
+        </div>
+        
+        <!-- Bottom-left dashboard for stats -->
+        <div class="dashboard dashboard-left">
+            <div class="dashboard-header">
+                <div class="dashboard-light"></div>
+                <h3>Flight Data</h3>
+                <div class="dashboard-light"></div>
+            </div>
+            <div class="dashboard-content">
+                <div class="stat-row">
+                    <div class="stat-label">Fuel:</div>
+                    <div class="stat-value"><span id="fuelLevel">100</span>%</div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-label">Altitude:</div>
+                    <div class="stat-value"><span id="altitude">0</span> km</div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-label">Velocity:</div>
+                    <div class="stat-value"><span id="velocity">0</span> m/s</div>
                 </div>
             </div>
-            <div class="stats">
-                <div>Fuel: <span id="fuelLevel">100</span>%</div>
-                <div>Altitude: <span id="altitude">0</span> km</div>
-                <div>Velocity: <span id="velocity">0</span> m/s</div>
+        </div>
+        
+        <!-- Bottom-right dashboard for focus -->
+        <div class="dashboard dashboard-right">
+            <div class="dashboard-header">
+                <div class="dashboard-light"></div>
+                <h3>Navigation</h3>
+                <div class="dashboard-light"></div>
+            </div>
+            <div class="dashboard-content">
+                <div class="focus-controls">
+                    <div class="focus-select">
+                        <label for="focusSelect">Focus <span class="shortcut">[F]</span>:</label>
+                        <select id="focusSelect">
+                            <option value="ship">Ship</option>
+                            <option value="manual">Manual</option>
+                            <option value="earth">Earth</option>
+                            <option value="moon">Moon</option>
+                            <option value="sun">Sun</option>
+                            <option value="mercury">Mercury</option>
+                            <option value="venus">Venus</option>
+                            <option value="mars">Mars</option>
+                            <option value="jupiter">Jupiter</option>
+                            <option value="saturn">Saturn</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

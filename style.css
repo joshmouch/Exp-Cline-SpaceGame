@@ -24,19 +24,22 @@ canvas {
     left: 0;
 }
 
-.controls {
+/* Top controls panel */
+.top-controls {
     position: absolute;
-    bottom: 20px;
+    top: 20px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     gap: 10px;
     z-index: 10;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.7);
     padding: 10px;
     border-radius: 10px;
     flex-wrap: wrap;
     justify-content: center;
+    border: 1px solid #48bb78;
+    box-shadow: 0 0 10px rgba(72, 187, 120, 0.5);
 }
 
 #zoomControls {
@@ -44,60 +47,142 @@ canvas {
     gap: 10px;
 }
 
+/* Dashboard styles */
+.dashboard {
+    position: absolute;
+    bottom: 20px;
+    width: 250px;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    border: 1px solid #48bb78;
+    box-shadow: 0 0 15px rgba(72, 187, 120, 0.6);
+    overflow: hidden;
+}
+
+.dashboard-left {
+    left: 20px;
+}
+
+.dashboard-right {
+    right: 20px;
+}
+
+.dashboard-header {
+    background-color: #1a202c;
+    padding: 8px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #48bb78;
+}
+
+.dashboard-header h3 {
+    margin: 0;
+    color: #48bb78;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.dashboard-light {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #48bb78;
+    box-shadow: 0 0 5px #48bb78;
+    animation: blink 2s infinite alternate;
+}
+
+@keyframes blink {
+    0% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.dashboard-content {
+    padding: 15px;
+}
+
+/* Stats styling */
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(72, 187, 120, 0.3);
+    padding-bottom: 5px;
+}
+
+.stat-label {
+    color: #a0aec0;
+}
+
+.stat-value {
+    color: #48bb78;
+    font-weight: bold;
+}
+
+/* Focus controls */
 .focus-controls {
     width: 100%;
-    display: flex;
-    justify-content: center;
-    margin-top: 10px;
-    flex-wrap: wrap;
 }
 
 .focus-select {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 8px;
-    margin-top: 5px;
 }
 
 .focus-select label {
     font-size: 14px;
+    color: #a0aec0;
 }
 
 .focus-select select {
-    background-color: #4a5568;
-    color: white;
-    border: none;
+    background-color: #1a202c;
+    color: #48bb78;
+    border: 1px solid #48bb78;
     border-radius: 5px;
-    padding: 5px 10px;
+    padding: 8px 15px;
     cursor: pointer;
+    font-size: 16px;
+    width: 100%;
 }
 
 .focus-select select:hover {
     background-color: #2d3748;
 }
 
+.focus-select select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(72, 187, 120, 0.5);
+}
+
+/* Button styling */
 button {
-    padding: 10px 15px;
-    background-color: #4a5568;
-    color: white;
-    border: none;
+    padding: 5px 10px;
+    background-color: #1a202c;
+    color: #48bb78;
+    border: 1px solid #48bb78;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s;
+    font-size: 12px;
 }
 
 button:hover {
     background-color: #2d3748;
+    box-shadow: 0 0 5px rgba(72, 187, 120, 0.5);
 }
 
 button.active {
     background-color: #48bb78;
+    color: #1a202c;
 }
 
-.stats {
-    width: 100%;
-    display: flex;
-    justify-content: space-around;
-    margin-top: 10px;
-    font-size: 14px;
+/* Shortcut styling */
+.shortcut {
+    opacity: 0.7;
+    font-size: 90%;
+    margin-left: 3px;
 }

@@ -6,8 +6,8 @@ function createCamera() {
     return {
         x: 0,
         y: 0,
-        zoom: 1,
-        targetZoom: 1
+        zoom: MAX_ZOOM,
+        targetZoom: MAX_ZOOM
     };
 }
 
@@ -17,10 +17,8 @@ function createCamera() {
  * @param {Object} rocket - The rocket object
  * @param {Array} trajectoryPoints - Array of trajectory points
  * @param {Object} controls - The controls object
- * @param {number} minZoom - Minimum zoom level
- * @param {number} maxZoom - Maximum zoom level
  */
-function updateCamera(camera, rocket, trajectoryPoints, controls, minZoom = 0.02, maxZoom = 1.0) {
+function updateCamera(camera, rocket, trajectoryPoints, controls) {
     // Only update camera position if focus is not manual
     if (controls.focus !== 'manual') {
         let targetX = 0;
@@ -67,20 +65,18 @@ function updateCamera(camera, rocket, trajectoryPoints, controls, minZoom = 0.02
  * Zooms the camera in
  * @param {Object} camera - The camera object
  * @param {number} factor - Zoom factor
- * @param {number} maxZoom - Maximum zoom level
  */
-function zoomIn(camera, factor = 1.5, maxZoom = 2) {
-    camera.targetZoom = Math.min(camera.targetZoom * factor, maxZoom);
+function zoomIn(camera, factor = 1.5) {
+    camera.targetZoom = Math.min(camera.targetZoom * factor, MAX_ZOOM);
 }
 
 /**
  * Zooms the camera out
  * @param {Object} camera - The camera object
  * @param {number} factor - Zoom factor
- * @param {number} minZoom - Minimum zoom level
  */
-function zoomOut(camera, factor = 1.5, minZoom = 0.1) {
-    camera.targetZoom = Math.max(camera.targetZoom / factor, minZoom);
+function zoomOut(camera, factor = 1.5) {
+    camera.targetZoom = Math.max(camera.targetZoom / factor, MIN_ZOOM);
 }
 
 /**
