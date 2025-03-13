@@ -16,8 +16,9 @@ function createControls() {
  * @param {Object} controls - The controls object
  * @param {Object} camera - The camera object
  * @param {Function} toggleAcceleration - Function to toggle rocket acceleration
+ * @param {Function} resetGame - Function to reset the game
  */
-function setupEventListeners(controls, camera, toggleAcceleration) {
+function setupEventListeners(controls, camera, toggleAcceleration, resetGame) {
     // Keyboard controls
     window.addEventListener('keydown', e => {
         controls.keysPressed[e.key] = true;
@@ -32,6 +33,11 @@ function setupEventListeners(controls, camera, toggleAcceleration) {
             controls.autoZoom = !controls.autoZoom;
             document.getElementById('autoZoomToggle').checked = controls.autoZoom;
             updateZoomControlsVisibility(controls.autoZoom);
+        }
+        
+        // Handle reset shortcut
+        if (e.key === 'r' || e.key === 'R') {
+            resetGame();
         }
     });
     
@@ -74,6 +80,10 @@ function setupEventListeners(controls, camera, toggleAcceleration) {
     
     document.getElementById('zoomOutBtn').addEventListener('click', () => {
         zoomOut(camera);
+    });
+    
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        resetGame();
     });
     
     // Toggle controls

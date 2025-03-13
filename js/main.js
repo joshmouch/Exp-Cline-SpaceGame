@@ -39,11 +39,32 @@ function init() {
     setupEventListeners(
         gameState.controls, 
         gameState.camera, 
-        () => toggleAcceleration(gameState.rocket)
+        () => toggleAcceleration(gameState.rocket),
+        resetGame
     );
     
     // Start the game loop
     requestAnimationFrame(gameLoop);
+}
+
+/**
+ * Resets the game to its initial state
+ */
+function resetGame() {
+    // Reset rocket
+    gameState.rocket = createRocket();
+    
+    // Reset camera
+    gameState.camera = createCamera();
+    
+    // Reset trajectory and orbit data
+    gameState.trajectoryPoints = [];
+    gameState.orbitPath = [];
+    gameState.orbitCount = 0;
+    gameState.lastQuadrant = 0;
+    
+    // Reset UI
+    document.getElementById('accelerateBtn').classList.remove('active');
 }
 
 /**
