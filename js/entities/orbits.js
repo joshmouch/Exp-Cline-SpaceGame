@@ -34,15 +34,35 @@ function updateOrbits(gameTime, rocket = null) {
         const angle = gameTime * body.orbitSpeed + body.orbitPhase;
         body.position.x = parent.position.x + Math.cos(angle) * body.orbitRadius;
         body.position.y = parent.position.y + Math.sin(angle) * body.orbitRadius;
-        
-        // If rocket is landed on this body, update its position too
-        if (rocket && rocket.landed && rocket.onBody === body) {
-            const rocketAngle = Math.atan2(rocket.y - body.position.y, rocket.x - body.position.x);
-            rocket.x = body.position.x + Math.cos(rocketAngle) * (body.radius + ROCKET_HEIGHT / 2);
-            rocket.y = body.position.y + Math.sin(rocketAngle) * (body.radius + ROCKET_HEIGHT / 2);
-            rocket.angle = rocketAngle - Math.PI / 2; // Point perpendicular to surface
-        }
     });
+    
+    // If rocket is landed on a body, update its position too
+    if (rocket && rocket.landed && rocket.onBody) {
+        const body = rocket.onBody;
+        const rocketAngle = Math.atan2(rocket.y - body.position.y, rocket.x - body.position.x);
+        
+        // For Earth's top (12 o'clock position), ensure rocket is exactly at the top
+        if (body === CELESTIAL_BODIES.EARTH && 
+            Math.abs(rocketAngle + Math.PI/2) < 0.1) { // If close to -PI/2 (top)
+            // Place at exactly 12 o'clock with a margin to prevent collision
+            const positionDistance = body.radius + ROCKET_HEIGHT / 2 + 1;
+            rocket.x = body.position.x;
+            rocket.y = body.position.y - positionDistance;
+            rocket.angle = 0; // Point straight up (with the drawing function adjustment)
+        } else {
+            // Standard positioning for all other cases
+            const positionDistance = body.radius + ROCKET_HEIGHT / 2 + 1;
+            rocket.x = body.position.x + Math.cos(rocketAngle) * positionDistance;
+            rocket.y = body.position.y + Math.sin(rocketAngle) * positionDistance;
+            
+            // Set angle to 0 if at the top of the planet (12 o'clock position)
+            if (rocketAngle <= -Math.PI/4 && rocketAngle >= -3*Math.PI/4) {
+                rocket.angle = 0; // Point straight up (12 o'clock)
+            } else {
+                rocket.angle = rocketAngle - Math.PI/2 + Math.PI; // Standard perpendicular direction, adjusted for drawing
+            }
+        }
+    }
 }
 
 /**

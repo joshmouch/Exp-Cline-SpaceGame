@@ -32,17 +32,25 @@ function calculateGravityForce(objectPos, body) {
 function applyGravity(rocket, body) {
     const gravity = calculateGravityForce(rocket, body);
     
-    // Only apply gravity if it's above the minimum threshold
-    if (gravity.force > MIN_GRAVITY_THRESHOLD) {
+    // Only apply gravity if it's above the minimum threshold and rocket is not landed
+    if (gravity.force > MIN_GRAVITY_THRESHOLD && !rocket.landed) {
         rocket.velocity.x += gravity.components.x;
         rocket.velocity.y += gravity.components.y;
     }
     
     // Check if the rocket is landing on the body
     if (rocket.landed && rocket.onBody === body) {
-        // Ensure the rocket's position is set correctly on the surface
-        rocket.x = body.position.x;
-        rocket.y = body.position.y - body.radius - ROCKET_HEIGHT / 2; // On top of Earth
+        // Calculate the angle from the center of the body to the rocket
+        const rocketAngle = Math.atan2(rocket.y - body.position.y, rocket.x - body.position.x);
+        
+        // For Earth's top (12 o'clock position), ensure rocket is exactly at the top
+        if (rocket.onBody === CELESTIAL_BODIES.EARTH && 
+            Math.abs(rocketAngle + Math.PI/2) < 0.1) { // If close to -PI/2 (top)
+            // Place at exactly 12 o'clock
+            rocket.x = body.position.x;
+            rocket.y = body.position.y - body.radius - ROCKET_HEIGHT / 2 - 1; // Add 1 pixel margin
+            rocket.angle = 0; // Point straight up (adjusted for drawing function)
+        }
     }
     
     return gravity.distance;

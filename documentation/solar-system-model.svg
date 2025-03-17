@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <!-- Background -->
+  <rect width="800" height="600" fill="#111" />
+  
+  <!-- Orbital paths -->
+  <circle cx="400" cy="300" r="70" fill="none" stroke="#333" stroke-width="1" stroke-dasharray="4 2" />
+  <circle cx="400" cy="300" r="110" fill="none" stroke="#333" stroke-width="1" stroke-dasharray="4 2" />
+  <circle cx="400" cy="300" r="150" fill="none" stroke="#333" stroke-width="1" stroke-dasharray="4 2" />
+  <circle cx="400" cy="300" r="200" fill="none" stroke="#333" stroke-width="1" stroke-dasharray="4 2" />
+  <circle cx="400" cy="300" r="250" fill="none" stroke="#333" stroke-width="1" stroke-dasharray="4 2" />
+  <circle cx="400" cy="300" r="300" fill="none" stroke="#333" stroke-width="1" stroke-dasharray="4 2" />
+  <circle cx="400" cy="300" r="350" fill="none" stroke="#333" stroke-width="1" stroke-dasharray="4 2" />
+
+  <!-- Sun -->
+  <circle cx="400" cy="300" r="40" fill="url(#sunGradient)" />
+  <circle cx="400" cy="300" r="60" fill="url(#sunCoronaGradient)" />
+  
+  <!-- Mercury -->
+  <circle cx="465" cy="320" r="5" fill="#95a5a6" />
+  
+  <!-- Venus -->
+  <circle cx="505" cy="355" r="10" fill="#e67e22" />
+  
+  <!-- Earth -->
+  <circle cx="550" cy="300" r="15" fill="#3498db" />
+  <!-- Earth atmosphere -->
+  <circle cx="550" cy="300" r="17" fill="url(#earthAtmosphereGradient)" />
+  <!-- Moon -->
+  <circle cx="575" cy="285" r="4" fill="#bdc3c7" />
+  
+  <!-- Mars -->
+  <circle cx="600" cy="330" r="8" fill="#e74c3c" />
+  
+  <!-- Jupiter -->
+  <circle cx="650" cy="300" r="25" fill="#f1c40f" />
+  <!-- Great Red Spot -->
+  <ellipse cx="645" cy="295" rx="8" ry="5" fill="#c0392b" />
+  
+  <!-- Saturn -->
+  <circle cx="700" cy="340" r="20" fill="#d35400" />
+  <!-- Saturn Rings -->
+  <ellipse cx="700" cy="340" rx="35" ry="5" fill="none" stroke="#d35400" stroke-width="2" />
+  
+  <!-- Rocket -->
+  <g transform="translate(540, 270) rotate(45)">
+    <rect x="-2" y="-10" width="4" height="20" fill="#eee" />
+    <polygon points="0,-15 5,-5 -5,-5" fill="#f00" />
+    <polygon points="-5,10 5,10 0,15" fill="#f00" />
+  </g>
+  
+  <!-- Trajectory -->
+  <path d="M540,270 Q580,230 620,260 T680,230" stroke="#0ff" stroke-width="1" stroke-dasharray="3 2" fill="none" />
+  
+  <!-- Legend -->
+  <rect x="20" y="20" width="200" height="180" fill="rgba(0,0,0,0.7)" rx="5" />
+  <text x="30" y="40" fill="#fff" font-family="Arial" font-size="14" font-weight="bold">Solar System Objects</text>
+  <circle cx="40" cy="60" r="8" fill="#f39c12" />
+  <text x="55" y="65" fill="#fff" font-family="Arial" font-size="12">Sun</text>
+  <circle cx="40" cy="85" r="5" fill="#3498db" />
+  <text x="55" y="90" fill="#fff" font-family="Arial" font-size="12">Earth</text>
+  <circle cx="40" cy="110" r="3" fill="#bdc3c7" />
+  <text x="55" y="115" fill="#fff" font-family="Arial" font-size="12">Moon</text>
+  <circle cx="40" cy="135" r="5" fill="#e74c3c" />
+  <text x="55" y="140" fill="#fff" font-family="Arial" font-size="12">Mars</text>
+  <g transform="translate(40, 160) scale(0.7)">
+    <rect x="-2" y="-10" width="4" height="20" fill="#eee" />
+    <polygon points="0,-15 5,-5 -5,-5" fill="#f00" />
+    <polygon points="-5,10 5,10 0,15" fill="#f00" />
+  </g>
+  <text x="55" y="165" fill="#fff" font-family="Arial" font-size="12">Rocket</text>
+  
+  <!-- UI Elements -->
+  <rect x="20" y="480" width="180" height="100" fill="rgba(0,0,0,0.7)" rx="5" stroke="#48bb78" stroke-width="1" />
+  <text x="30" y="500" fill="#48bb78" font-family="Arial" font-size="14" font-weight="bold">Flight Data</text>
+  <text x="30" y="525" fill="#a0aec0" font-family="Arial" font-size="12">Fuel: </text>
+  <text x="150" y="525" fill="#48bb78" font-family="Arial" font-size="12" text-anchor="end">85%</text>
+  <text x="30" y="550" fill="#a0aec0" font-family="Arial" font-size="12">Altitude: </text>
+  <text x="150" y="550" fill="#48bb78" font-family="Arial" font-size="12" text-anchor="end">35.2 km</text>
+  <text x="30" y="575" fill="#a0aec0" font-family="Arial" font-size="12">Velocity: </text>
+  <text x="150" y="575" fill="#48bb78" font-family="Arial" font-size="12" text-anchor="end">1.28 m/s</text>
+  
+  <rect x="600" y="480" width="180" height="100" fill="rgba(0,0,0,0.7)" rx="5" stroke="#48bb78" stroke-width="1" />
+  <text x="610" y="500" fill="#48bb78" font-family="Arial" font-size="14" font-weight="bold">Navigation</text>
+  <text x="610" y="525" fill="#a0aec0" font-family="Arial" font-size="12">Focus: </text>
+  <rect x="610" y="535" width="160" height="25" fill="#1a202c" stroke="#48bb78" stroke-width="1" rx="3" />
+  <text x="620" y="553" fill="#48bb78" font-family="Arial" font-size="12">Ship</text>
+  
+  <rect x="300" y="20" width="200" height="40" fill="rgba(0,0,0,0.7)" rx="5" stroke="#48bb78" stroke-width="1" />
+  <text x="325" y="45" fill="#48bb78" font-family="Arial" font-size="14">Accelerate [W]</text>
+  
+  <!-- Definitions -->
+  <defs>
+    <radialGradient id="sunGradient" cx="0.5" cy="0.5" r="0.5" fx="0.25" fy="0.25">
+      <stop offset="0%" stop-color="#fff5c0" />
+      <stop offset="50%" stop-color="#ffd700" />
+      <stop offset="100%" stop-color="#ff8c00" />
+    </radialGradient>
+    
+    <radialGradient id="sunCoronaGradient" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="rgba(255, 255, 0, 0.3)" />
+      <stop offset="50%" stop-color="rgba(255, 165, 0, 0.2)" />
+      <stop offset="100%" stop-color="rgba(255, 69, 0, 0)" />
+    </radialGradient>
+    
+    <radialGradient id="earthAtmosphereGradient" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="rgba(52, 152, 219, 1)" />
+      <stop offset="90%" stop-color="rgba(52, 152, 219, 0.8)" />
+      <stop offset="100%" stop-color="rgba(52, 152, 219, 0)" />
+    </radialGradient>
+  </defs>
+</svg>

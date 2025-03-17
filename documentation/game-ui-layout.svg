@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <!-- Background representing the game canvas -->
+  <rect width="1280" height="720" fill="#121212" />
+  
+  <!-- Game view area with stars -->
+  <g id="gameView">
+    <!-- Stars -->
+    <circle cx="200" cy="150" r="1" fill="white" opacity="0.8" />
+    <circle cx="450" cy="320" r="1" fill="white" opacity="0.7" />
+    <circle cx="800" cy="100" r="1" fill="white" opacity="0.9" />
+    <circle cx="150" cy="500" r="1" fill="white" opacity="0.7" />
+    <circle cx="1100" cy="250" r="1" fill="white" opacity="0.8" />
+    <circle cx="600" cy="650" r="1" fill="white" opacity="0.7" />
+    <circle cx="950" cy="400" r="1" fill="white" opacity="0.9" />
+    <!-- More stars would be here in the real application -->
+    
+    <!-- Earth -->
+    <circle cx="640" cy="360" r="150" fill="#3498db" />
+    <circle cx="640" cy="360" r="155" fill="rgba(52, 152, 219, 0.3)" />
+    
+    <!-- Rocket -->
+    <g transform="translate(640, 200) rotate(-90)">
+      <rect x="-5" y="-10" width="10" height="20" fill="#eee" />
+      <polygon points="0,-15 5,-5 -5,-5" fill="#f55" />
+      <polygon points="-7,10 7,10 0,20" fill="#f55" />
+    </g>
+    
+    <!-- Trajectory path -->
+    <path d="M640,200 Q750,150 850,250 T950,450" stroke="rgba(0, 255, 255, 0.3)" stroke-width="2" stroke-dasharray="5 3" fill="none" />
+    
+    <!-- Orbit path -->
+    <circle cx="640" cy="360" r="250" fill="none" stroke="rgba(100, 100, 255, 0.2)" stroke-width="1" stroke-dasharray="3 2" />
+  </g>
+  
+  <!-- Top controls panel -->
+  <g id="topControls">
+    <rect x="390" y="20" width="500" height="60" rx="10" fill="rgba(0, 0, 0, 0.7)" stroke="#48bb78" stroke-width="1" />
+    
+    <g transform="translate(420, 50)">
+      <rect x="-50" y="-15" width="100" height="30" rx="5" fill="#1a202c" stroke="#48bb78" stroke-width="1" />
+      <text x="0" y="5" fill="#48bb78" font-family="Arial" font-size="12" text-anchor="middle">Accelerate <tspan fill="rgba(255,255,255,0.5)">[W]</tspan></text>
+    </g>
+    
+    <g transform="translate(540, 50)">
+      <rect x="-50" y="-15" width="100" height="30" rx="5" fill="#1a202c" stroke="#48bb78" stroke-width="1" />
+      <text x="0" y="5" fill="#48bb78" font-family="Arial" font-size="12" text-anchor="middle">Turn Left <tspan fill="rgba(255,255,255,0.5)">[A]</tspan></text>
+    </g>
+    
+    <g transform="translate(660, 50)">
+      <rect x="-50" y="-15" width="100" height="30" rx="5" fill="#1a202c" stroke="#48bb78" stroke-width="1" />
+      <text x="0" y="5" fill="#48bb78" font-family="Arial" font-size="12" text-anchor="middle">Turn Right <tspan fill="rgba(255,255,255,0.5)">[D]</tspan></text>
+    </g>
+    
+    <g transform="translate(780, 50)">
+      <rect x="-50" y="-15" width="100" height="30" rx="5" fill="#1a202c" stroke="#48bb78" stroke-width="1" />
+      <text x="0" y="5" fill="#48bb78" font-family="Arial" font-size="12" text-anchor="middle">Reset <tspan fill="rgba(255,255,255,0.5)">[R]</tspan></text>
+    </g>
+  </g>
+  
+  <!-- Bottom-left dashboard for flight data -->
+  <g id="flightDataDashboard">
+    <rect x="20" y="580" width="250" height="120" rx="10" fill="rgba(0, 0, 0, 0.8)" stroke="#48bb78" stroke-width="1" />
+    
+    <!-- Dashboard header -->
+    <rect x="20" y="580" width="250" height="35" rx="10" fill="#1a202c" />
+    <circle cx="40" cy="598" r="5" fill="#48bb78" opacity="0.8">
+      <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite" />
+    </circle>
+    <text x="145" y="603" fill="#48bb78" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">FLIGHT DATA</text>
+    <circle cx="250" cy="598" r="5" fill="#48bb78" opacity="0.8">
+      <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite" />
+    </circle>
+    
+    <!-- Dashboard content -->
+    <g transform="translate(40, 630)">
+      <text x="0" y="0" fill="#a0aec0" font-family="Arial" font-size="14">Fuel:</text>
+      <text x="190" y="0" fill="#48bb78" font-family="Arial" font-size="14" text-anchor="end">85%</text>
+    </g>
+    
+    <g transform="translate(40, 655)">
+      <text x="0" y="0" fill="#a0aec0" font-family="Arial" font-size="14">Altitude:</text>
+      <text x="190" y="0" fill="#48bb78" font-family="Arial" font-size="14" text-anchor="end">35.2 km</text>
+    </g>
+    
+    <g transform="translate(40, 680)">
+      <text x="0" y="0" fill="#a0aec0" font-family="Arial" font-size="14">Velocity:</text>
+      <text x="190" y="0" fill="#48bb78" font-family="Arial" font-size="14" text-anchor="end">1.28 m/s</text>
+    </g>
+  </g>
+  
+  <!-- Bottom-right dashboard for navigation -->
+  <g id="navigationDashboard">
+    <rect x="1010" y="580" width="250" height="120" rx="10" fill="rgba(0, 0, 0, 0.8)" stroke="#48bb78" stroke-width="1" />
+    
+    <!-- Dashboard header -->
+    <rect x="1010" y="580" width="250" height="35" rx="10" fill="#1a202c" />
+    <circle cx="1030" cy="598" r="5" fill="#48bb78" opacity="0.8">
+      <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite" />
+    </circle>
+    <text x="1135" y="603" fill="#48bb78" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">NAVIGATION</text>
+    <circle cx="1240" cy="598" r="5" fill="#48bb78" opacity="0.8">
+      <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite" />
+    </circle>
+    
+    <!-- Dashboard content -->
+    <g transform="translate(1030, 640)">
+      <text x="0" y="0" fill="#a0aec0" font-family="Arial" font-size="14">Focus <tspan fill="rgba(255,255,255,0.5)">[F]</tspan>:</text>
+      
+      <!-- Focus select dropdown -->
+      <rect x="0" y="10" width="210" height="30" rx="5" fill="#1a202c" stroke="#48bb78" stroke-width="1" />
+      <text x="15" y="30" fill="#48bb78" font-family="Arial" font-size="14">Ship</text>
+      
+      <!-- Dropdown arrow -->
+      <path d="M195,25 l6,6 l6,-6" stroke="#48bb78" stroke-width="2" fill="none" />
+    </g>
+  </g>
+  
+  <!-- Zoom controls -->
+  <g id="zoomControls">
+    <rect x="900" y="20" width="150" height="60" rx="10" fill="rgba(0, 0, 0, 0.7)" stroke="#48bb78" stroke-width="1" />
+    
+    <g transform="translate(935, 50)">
+      <rect x="-30" y="-15" width="60" height="30" rx="5" fill="#1a202c" stroke="#48bb78" stroke-width="1" />
+      <text x="0" y="5" fill="#48bb78" font-family="Arial" font-size="12" text-anchor="middle">+ <tspan fill="rgba(255,255,255,0.5)">[+]</tspan></text>
+    </g>
+    
+    <g transform="translate(1015, 50)">
+      <rect x="-30" y="-15" width="60" height="30" rx="5" fill="#1a202c" stroke="#48bb78" stroke-width="1" />
+      <text x="0" y="5" fill="#48bb78" font-family="Arial" font-size="12" text-anchor="middle">- <tspan fill="rgba(255,255,255,0.5)">[-]</tspan></text>
+    </g>
+  </g>
+  
+  <!-- Orbit count display -->
+  <g id="orbitDisplay">
+    <text x="20" y="30" fill="white" font-family="Arial" font-size="16">Orbits: 2</text>
+  </g>
+</svg>

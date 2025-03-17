@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <!-- Background -->
+  <rect width="800" height="600" fill="#111" />
+  
+  <!-- Grid lines -->
+  <g stroke="#333" stroke-width="1">
+    <line x1="0" y1="300" x2="800" y2="300" />
+    <line x1="400" y1="0" x2="400" y2="600" />
+    
+    <!-- X-axis ticks -->
+    <line x1="100" y1="295" x2="100" y2="305" />
+    <line x1="200" y1="295" x2="200" y2="305" />
+    <line x1="300" y1="295" x2="300" y2="305" />
+    <line x1="500" y1="295" x2="500" y2="305" />
+    <line x1="600" y1="295" x2="600" y2="305" />
+    <line x1="700" y1="295" x2="700" y2="305" />
+    
+    <!-- Y-axis ticks -->
+    <line x1="395" y1="100" x2="405" y2="100" />
+    <line x1="395" y1="200" x2="405" y2="200" />
+    <line x1="395" y1="400" x2="405" y2="400" />
+    <line x1="395" y1="500" x2="405" y2="500" />
+  </g>
+  
+  <!-- Planet (Earth) -->
+  <circle cx="400" cy="300" r="100" fill="#1f3a5f" />
+  <circle cx="400" cy="300" r="95" fill="#3498db" />
+  
+  <!-- Rocket at surface -->
+  <g transform="translate(400, 200) rotate(-90)">
+    <rect x="-5" y="-10" width="10" height="20" fill="#eee" />
+    <polygon points="0,-15 5,-5 -5,-5" fill="#f55" />
+    <polygon points="-7,10 7,10 0,20" fill="#f55" />
+  </g>
+
+  <!-- Rocket in flight -->
+  <g transform="translate(520, 180) rotate(-60)">
+    <rect x="-5" y="-10" width="10" height="20" fill="#eee" />
+    <polygon points="0,-15 5,-5 -5,-5" fill="#f55" />
+    <polygon points="-7,10 7,10 0,20" fill="#f55" />
+    <polygon points="0,25 -5,15 5,15" fill="#fa0" opacity="0.8" />
+  </g>
+  
+  <!-- Velocity vector -->
+  <line x1="520" y1="180" x2="550" y2="150" stroke="#0f0" stroke-width="2" marker-end="url(#arrowVelocity)" />
+  <text x="540" y="140" fill="#0f0" font-family="Arial" font-size="12">v</text>
+  
+  <!-- Acceleration vector -->
+  <line x1="520" y1="180" x2="535" y2="150" stroke="#f00" stroke-width="2" marker-end="url(#arrowAccel)" stroke-dasharray="4 2" />
+  <text x="525" y="145" fill="#f00" font-family="Arial" font-size="12">a</text>
+  
+  <!-- Gravity vector -->
+  <line x1="520" y1="180" x2="470" y2="250" stroke="#ff0" stroke-width="2" marker-end="url(#arrowGravity)" />
+  <text x="480" y="235" fill="#ff0" font-family="Arial" font-size="12">g</text>
+  
+  <!-- Predicted trajectory -->
+  <path d="M520,180 Q600,150 650,250 T700,400" stroke="#0ff" stroke-width="1.5" stroke-dasharray="5 2" fill="none" />
+  
+  <!-- Orbit path -->
+  <circle cx="400" cy="300" r="200" fill="none" stroke="#99f" stroke-width="1" stroke-dasharray="3 2" />
+  
+  <!-- Physics formulas -->
+  <rect x="50" y="50" width="300" height="160" fill="rgba(0,0,0,0.7)" rx="5" />
+  <text x="70" y="80" fill="#fff" font-family="Arial" font-size="14" font-weight="bold">Rocket Physics</text>
+  <text x="70" y="110" fill="#0f0" font-family="Arial" font-size="12">Velocity: v = v₀ + at</text>
+  <text x="70" y="135" fill="#f00" font-family="Arial" font-size="12">Acceleration: a = ACCELERATION_RATE * direction</text>
+  <text x="70" y="160" fill="#ff0" font-family="Arial" font-size="12">Gravity: F = G * m₁ * m₂ / r²</text>
+  <text x="70" y="185" fill="#ff0" font-family="Arial" font-size="12">G = GRAVITY_FACTOR * body.gravity</text>
+  
+  <!-- Landing Physics -->
+  <rect x="450" y="450" width="300" height="120" fill="rgba(0,0,0,0.7)" rx="5" />
+  <text x="470" y="480" fill="#fff" font-family="Arial" font-size="14" font-weight="bold">Landing Conditions</text>
+  <text x="470" y="510" fill="#fff" font-family="Arial" font-size="12">• Velocity < SAFE_LANDING_VELOCITY</text>
+  <text x="470" y="535" fill="#fff" font-family="Arial" font-size="12">• Angle difference < 45° from surface normal</text>
+  <text x="470" y="560" fill="#fff" font-family="Arial" font-size="12">• Distance ≤ body.radius + ROCKET_HEIGHT/2</text>
+  
+  <!-- Orbit Physics -->
+  <rect x="50" y="450" width="300" height="120" fill="rgba(0,0,0,0.7)" rx="5" />
+  <text x="70" y="480" fill="#fff" font-family="Arial" font-size="14" font-weight="bold">Orbit Detection</text>
+  <text x="70" y="510" fill="#fff" font-family="Arial" font-size="12">• Track rocket position by quadrant (1-4)</text>
+  <text x="70" y="535" fill="#fff" font-family="Arial" font-size="12">• Detect quadrant transition 4 → 1</text>
+  <text x="70" y="560" fill="#fff" font-family="Arial" font-size="12">• Minimum distance > body.radius * 1.5</text>
+  
+  <!-- Definitions -->
+  <defs>
+    <marker id="arrowVelocity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#0f0" />
+    </marker>
+    
+    <marker id="arrowAccel" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#f00" />
+    </marker>
+    
+    <marker id="arrowGravity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#ff0" />
+    </marker>
+  </defs>
+</svg>

@@ -83,6 +83,7 @@ function calculateAltitude(x, y, body) {
 }
 
 // Export utility functions
+window.normalizeAngle = normalizeAngle;
 window.calculateDistance = calculateDistance;
 window.calculateDistanceSquared = calculateDistanceSquared;
 window.calculateDistanceToBody = calculateDistanceToBody;
